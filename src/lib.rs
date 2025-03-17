@@ -1,9 +1,12 @@
+const MAGIC: &[u8] = "\0asm".as_bytes();
+const VERSION: &[u8] = &1u32.to_le_bytes();
+
 fn compile_void_lang(input: &str) -> Vec<u8> {
     if !input.is_empty() {
         panic!("Expected empty code, got {}", input);
     }
 
-    vec![0, 97, 115, 109, 1, 0, 0, 0]
+    [MAGIC, VERSION].into_iter().flatten().copied().collect()
 }
 
 #[cfg(test)]
