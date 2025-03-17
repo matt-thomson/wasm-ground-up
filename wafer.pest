@@ -1,5 +1,5 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n "}
 
-main = { number }
-
+main = { expression }
+expression = { number }
 number = @{ ASCII_DIGIT+ }

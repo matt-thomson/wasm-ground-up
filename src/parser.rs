@@ -27,6 +27,9 @@ impl<'a> Wafer<'a> {
 
                     instructions
                 }
+                Rule::expression => {
+                    inner(pair.into_inner().next().unwrap())
+                }
                 Rule::number => {
                     let number = i32::from_str(pair.as_str()).expect("failed to parse number");
                     vec![Instruction::ConstI32(number)]
