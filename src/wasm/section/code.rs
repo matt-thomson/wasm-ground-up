@@ -13,7 +13,7 @@ impl WasmEncodable for FunctionCode {
         let instructions = self
             .instructions
             .iter()
-            .flat_map(|i| i.wasm_encode())
+            .flat_map(WasmEncodable::wasm_encode)
             .collect::<Vec<_>>();
 
         [

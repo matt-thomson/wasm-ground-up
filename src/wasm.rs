@@ -14,7 +14,7 @@ pub trait WasmEncodable {
 impl WasmEncodable for u32 {
     fn wasm_encode(&self) -> Vec<u8> {
         let mut buffer = vec![];
-        leb128::write::unsigned(&mut buffer, *self as u64).expect("failed to write LEB128");
+        leb128::write::unsigned(&mut buffer, u64::from(*self)).expect("failed to write LEB128");
 
         buffer
     }
@@ -32,7 +32,7 @@ impl WasmEncodable for usize {
 impl WasmEncodable for i32 {
     fn wasm_encode(&self) -> Vec<u8> {
         let mut buffer = vec![];
-        leb128::write::signed(&mut buffer, *self as i64).expect("failed to write LEB128");
+        leb128::write::signed(&mut buffer, i64::from(*self)).expect("failed to write LEB128");
 
         buffer
     }
@@ -52,7 +52,7 @@ where
         self.len()
             .wasm_encode()
             .into_iter()
-            .chain(self.iter().flat_map(|x| x.wasm_encode()))
+            .chain(self.iter().flat_map(WasmEncodable::wasm_encode))
             .collect()
     }
 }

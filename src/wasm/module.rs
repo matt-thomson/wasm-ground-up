@@ -43,6 +43,6 @@ impl Module {
     }
 
     pub fn export_function(&mut self, name: &str, index: u32) {
-        self.export.add_function(name, index)
+        self.export.add_function(name, index);
     }
 }
