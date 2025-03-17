@@ -1,3 +1,4 @@
+mod function;
 mod r#type;
 
 use super::WasmEncodable;
