@@ -52,10 +52,6 @@ impl Section for CodeSection {
 }
 
 impl CodeSection {
-    pub fn new(functions: Vec<FunctionCode>) -> Self {
-        Self { functions }
-    }
-
     pub fn add_function(&mut self, instructions: Vec<Instruction>) {
         let function = FunctionCode::new(instructions);
         self.functions.push(function);
