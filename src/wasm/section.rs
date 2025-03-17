@@ -2,6 +2,10 @@ mod code;
 mod function;
 mod r#type;
 
+pub use code::CodeSection;
+pub use function::FunctionSection;
+pub use r#type::TypeSection;
+
 use super::WasmEncodable;
 
 pub trait Section {

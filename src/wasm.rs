@@ -1,4 +1,7 @@
-mod section;
+mod module;
+pub mod section;
+
+pub use module::Module;
 
 pub trait WasmEncodable {
     fn wasm_encode(&self) -> Vec<u8>;

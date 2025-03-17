@@ -1,3 +1,5 @@
+use wasm::{Module, WasmEncodable};
+
 mod wasm;
 
 const MAGIC: &[u8] = "\0asm".as_bytes();
@@ -16,45 +18,49 @@ fn compile_nop_lang(input: &str) -> Vec<u8> {
         panic!("Expected empty code, got {}", input);
     }
 
-    let type_section = [
-        1, // section identifier
-        4, // section size in bytes
-        1, // number of entries that follow
-        // entry 0
-        0x60, // type "function"
-        0,    // empty vector of parameters
-        0,    // empty vector of return values
-    ];
+    // let type_section = [
+    //     1, // section identifier
+    //     4, // section size in bytes
+    //     1, // number of entries that follow
+    //     // entry 0
+    //     0x60, // type "function"
+    //     0,    // empty vector of parameters
+    //     0,    // empty vector of return values
+    // ];
 
-    let function_section = [
-        3, // section identifier
-        2, // section size in bytes
-        1, // number of entries that follow
-        // entry 0
-        0, // index of the type section entry
-    ];
+    // let function_section = [
+    //     3, // section identifier
+    //     2, // section size in bytes
+    //     1, // number of entries that follow
+    //     // entry 0
+    //     0, // index of the type section entry
+    // ];
 
-    let code_section = [
-        10, // section identifier
-        4,  //section size in bytes
-        1,  //number of entries that follow
-        // entry 0
-        2,  // entry size in bytes
-        0,  // empty vector of local variables
-        11, // "end" instruction
-    ];
+    // let code_section = [
+    //     10, // section identifier
+    //     4,  //section size in bytes
+    //     1,  //number of entries that follow
+    //     // entry 0
+    //     2,  // entry size in bytes
+    //     0,  // empty vector of local variables
+    //     11, // "end" instruction
+    // ];
 
-    [
-        MAGIC,
-        VERSION,
-        &type_section,
-        &function_section,
-        &code_section,
-    ]
-    .into_iter()
-    .flatten()
-    .copied()
-    .collect()
+    // [
+    //     MAGIC,
+    //     VERSION,
+    //     &type_section,
+    //     &function_section,
+    //     &code_section,
+    // ]
+    // .into_iter()
+    // .flatten()
+    // .copied()
+    // .collect()
+
+    let module = Module::new();
+
+    module.wasm_encode()
 }
 
 #[cfg(test)]
