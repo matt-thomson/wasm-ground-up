@@ -1,9 +1,11 @@
 mod instruction;
 mod module;
 pub mod section;
+mod value;
 
 pub use instruction::Instruction;
 pub use module::Module;
+pub use value::ValueType;
 
 pub trait WasmEncodable {
     fn wasm_encode(&self) -> Vec<u8>;

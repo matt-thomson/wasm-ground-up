@@ -1,15 +1,6 @@
-use crate::wasm::WasmEncodable;
+use crate::wasm::{ValueType, WasmEncodable};
 
 use super::Section;
-
-#[derive(PartialEq)]
-pub enum ValueType {}
-
-impl WasmEncodable for ValueType {
-    fn wasm_encode(&self) -> Vec<u8> {
-        todo!()
-    }
-}
 
 #[derive(PartialEq)]
 pub struct FunctionType {
