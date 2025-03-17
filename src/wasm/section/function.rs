@@ -16,8 +16,8 @@ impl Section for FunctionSection {
 }
 
 impl FunctionSection {
-    pub fn new(types: Vec<u32>) -> Self {
-        Self { types }
+    pub fn add_function(&mut self, r#type: u32) {
+        self.types.push(r#type);
     }
 }
 
@@ -29,7 +29,8 @@ mod tests {
 
     #[test]
     fn should_encode_function_section_with_single_type_index() {
-        let section = FunctionSection::new(vec![0]);
+        let mut section = FunctionSection::default();
+        section.add_function(0);
 
         let wasm = section.wasm_encode();
 

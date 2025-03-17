@@ -1,18 +1,6 @@
-use crate::wasm::WasmEncodable;
+use crate::wasm::{Instruction, WasmEncodable};
 
 use super::Section;
-
-pub enum Instruction {
-    End,
-}
-
-impl WasmEncodable for Instruction {
-    fn wasm_encode(&self) -> Vec<u8> {
-        match self {
-            Instruction::End => vec![0x0b],
-        }
-    }
-}
 
 pub struct FunctionCode {
     locals: Vec<u32>,
@@ -67,18 +55,23 @@ impl CodeSection {
     pub fn new(functions: Vec<FunctionCode>) -> Self {
         Self { functions }
     }
+
+    pub fn add_function(&mut self, instructions: Vec<Instruction>) {
+        let function = FunctionCode::new(instructions);
+        self.functions.push(function);
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::wasm::WasmEncodable;
 
-    use super::{CodeSection, FunctionCode, Instruction};
+    use super::{CodeSection, Instruction};
 
     #[test]
     fn should_encode_code_section_for_nop_function() {
-        let function = FunctionCode::new(vec![Instruction::End]);
-        let section = CodeSection::new(vec![function]);
+        let mut section = CodeSection::default();
+        section.add_function(vec![Instruction::End]);
 
         let wasm = section.wasm_encode();
 

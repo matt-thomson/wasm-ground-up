@@ -1,6 +1,8 @@
+mod instruction;
 mod module;
 pub mod section;
 
+pub use instruction::Instruction;
 pub use module::Module;
 
 pub trait WasmEncodable {

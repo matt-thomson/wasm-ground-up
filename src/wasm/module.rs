@@ -1,5 +1,5 @@
-use super::WasmEncodable;
 use super::section::{CodeSection, FunctionSection, TypeSection};
+use super::{Instruction, WasmEncodable};
 
 #[derive(Default)]
 pub struct Module {
@@ -23,5 +23,13 @@ impl WasmEncodable for Module {
         result.extend(self.code.wasm_encode());
 
         result
+    }
+}
+
+impl Module {
+    pub fn add_function(&mut self, instructions: Vec<Instruction>) {
+        let r#type = self.r#type.add_function();
+        self.function.add_function(r#type);
+        self.code.add_function(instructions);
     }
 }

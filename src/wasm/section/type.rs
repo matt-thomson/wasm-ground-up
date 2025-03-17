@@ -2,6 +2,7 @@ use crate::wasm::WasmEncodable;
 
 use super::Section;
 
+#[derive(PartialEq)]
 pub enum ValueType {}
 
 impl WasmEncodable for ValueType {
@@ -10,6 +11,7 @@ impl WasmEncodable for ValueType {
     }
 }
 
+#[derive(PartialEq)]
 pub struct FunctionType {
     parameters: Vec<ValueType>,
     returns: Vec<ValueType>,
@@ -51,8 +53,16 @@ impl Section for TypeSection {
 }
 
 impl TypeSection {
-    pub fn new(functions: Vec<FunctionType>) -> Self {
-        Self { functions }
+    pub fn add_function(&mut self) -> u32 {
+        let function = FunctionType::new();
+        let index = self.functions.iter().position(|f| *f == function);
+
+        if let Some(index) = index {
+            index as u32
+        } else {
+            self.functions.push(function);
+            (self.functions.len() - 1) as u32
+        }
     }
 }
 
@@ -60,12 +70,12 @@ impl TypeSection {
 mod tests {
     use crate::wasm::WasmEncodable;
 
-    use super::{FunctionType, TypeSection};
+    use super::TypeSection;
 
     #[test]
     fn should_encode_type_section_with_void_no_arg_function() {
-        let function = FunctionType::new();
-        let section = TypeSection::new(vec![function]);
+        let mut section = TypeSection::default();
+        section.add_function();
 
         let wasm = section.wasm_encode();
 
