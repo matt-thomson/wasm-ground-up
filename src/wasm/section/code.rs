@@ -3,7 +3,7 @@ use crate::wasm::{Instruction, WasmEncodable};
 use super::Section;
 
 pub struct FunctionCode {
-    locals: Vec<u32>,
+    locals: Vec<usize>,
     instructions: Vec<Instruction>,
 }
 

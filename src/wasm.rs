@@ -11,15 +11,6 @@ pub trait WasmEncodable {
     fn wasm_encode(&self) -> Vec<u8>;
 }
 
-impl WasmEncodable for u32 {
-    fn wasm_encode(&self) -> Vec<u8> {
-        let mut buffer = vec![];
-        leb128::write::unsigned(&mut buffer, u64::from(*self)).expect("failed to write LEB128");
-
-        buffer
-    }
-}
-
 impl WasmEncodable for usize {
     fn wasm_encode(&self) -> Vec<u8> {
         let mut buffer = vec![];
@@ -35,12 +26,6 @@ impl WasmEncodable for i32 {
         leb128::write::signed(&mut buffer, i64::from(*self)).expect("failed to write LEB128");
 
         buffer
-    }
-}
-
-impl WasmEncodable for u8 {
-    fn wasm_encode(&self) -> Vec<u8> {
-        vec![*self]
     }
 }
 
@@ -60,7 +45,6 @@ where
 impl WasmEncodable for String {
     fn wasm_encode(&self) -> Vec<u8> {
         let bytes: Vec<u8> = self.bytes().collect();
-
-        bytes.wasm_encode()
+        [bytes.len().wasm_encode(), bytes].concat()
     }
 }
