@@ -1,3 +1,5 @@
+mod wasm;
+
 const MAGIC: &[u8] = "\0asm".as_bytes();
 const VERSION: &[u8] = &1u32.to_le_bytes();
 
