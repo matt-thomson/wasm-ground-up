@@ -3,6 +3,8 @@ use std::str::FromStr;
 use pest::Parser as PestParser;
 use pest::iterators::Pair;
 
+use crate::wasm::Instruction;
+
 #[derive(pest_derive::Parser)]
 #[grammar = "wafer.pest"]
 struct Parser;
@@ -16,11 +18,19 @@ impl<'a> Wafer<'a> {
         Self(parsed.next().unwrap())
     }
 
-    fn js_value(self) -> u32 {
-        fn inner(pair: Pair<Rule>) -> u32 {
+    pub fn into_instructions(self) -> Vec<Instruction> {
+        fn inner(pair: Pair<Rule>) -> Vec<Instruction> {
             match pair.as_rule() {
-                Rule::main => inner(pair.into_inner().next().unwrap()),
-                Rule::number => u32::from_str(pair.as_str()).expect("failed to parse number"),
+                Rule::main => {
+                    let mut instructions = inner(pair.into_inner().next().unwrap());
+                    instructions.push(Instruction::End);
+
+                    instructions
+                }
+                Rule::number => {
+                    let number = i32::from_str(pair.as_str()).expect("failed to parse number");
+                    vec![Instruction::ConstI32(number)]
+                }
                 Rule::WHITESPACE => unreachable!(),
             }
         }
@@ -31,12 +41,18 @@ impl<'a> Wafer<'a> {
 
 #[cfg(test)]
 mod tests {
+
+    use crate::wasm::Instruction;
+
     use super::Wafer;
 
     #[test]
     fn should_parse_numbers() {
         let wafer = Wafer::parse("123");
-        assert_eq!(wafer.js_value(), 123);
+        assert_eq!(
+            wafer.into_instructions(),
+            vec![Instruction::ConstI32(123), Instruction::End]
+        );
     }
 
     #[test]
