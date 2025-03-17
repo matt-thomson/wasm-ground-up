@@ -4,6 +4,7 @@ use super::WasmEncodable;
 pub enum Instruction {
     End,
     ConstI32(i32),
+    AddI32,
 }
 
 impl WasmEncodable for Instruction {
@@ -11,6 +12,7 @@ impl WasmEncodable for Instruction {
         match self {
             Instruction::End => vec![0x0b],
             Instruction::ConstI32(value) => [vec![0x41], value.wasm_encode()].concat(),
+            Instruction::AddI32 => vec![0x6a],
         }
     }
 }

@@ -28,8 +28,22 @@ impl<'a> Wafer<'a> {
                     instructions
                 }
                 Rule::expression => {
-                    inner(pair.into_inner().next().unwrap())
+                    let mut pairs = pair.into_inner();
+                    let mut instructions = inner(pairs.next().unwrap());
+
+                    while let Some(operation) = pairs.next() {
+                        let operand = pairs.next().unwrap();
+
+                        instructions.extend(inner(operand));
+                        instructions.extend(inner(operation));
+                    }
+
+                    instructions
                 }
+                Rule::operation => match pair.as_str() {
+                    "+" => vec![Instruction::AddI32],
+                    _ => unreachable!(),
+                },
                 Rule::number => {
                     let number = i32::from_str(pair.as_str()).expect("failed to parse number");
                     vec![Instruction::ConstI32(number)]

@@ -43,4 +43,17 @@ mod tests {
         let x = func.call(&mut store, ()).expect("couldn't call function");
         assert_eq!(x, 123);
     }
+
+    #[test]
+    fn should_compile_expression() {
+        let wasm = compile("123 + 456");
+        let (mut store, instance) = create_wasmi_instance(&wasm);
+
+        let func = instance
+            .get_typed_func::<(), i32>(&mut store, "main")
+            .expect("couldn't find function");
+
+        let x = func.call(&mut store, ()).expect("couldn't call function");
+        assert_eq!(x, 579);
+    }
 }
