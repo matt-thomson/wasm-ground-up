@@ -1,5 +1,6 @@
 use wasm::{Instruction, Module, WasmEncodable};
 
+mod parser;
 mod wasm;
 
 fn compile_nop_lang(input: &str) -> Vec<u8> {
