@@ -20,18 +20,25 @@ mod tests {
 
     use super::compile_nop_lang;
 
-    fn create_wasmi_instance(wasm: &[u8]) -> Instance {
+    fn create_wasmi_instance(wasm: &[u8]) -> (Store<u32>, Instance) {
         let engine = Engine::default();
         let module = Module::new(&engine, wasm).expect("couldn't parse module");
-        let store = Store::new(&engine, 0);
+        let mut store = Store::new(&engine, 0);
 
-        Instance::new(store, &module, &[]).expect("couldn't build instance")
+        let instance = Instance::new(&mut store, &module, &[]).expect("couldn't build instance");
+
+        (store, instance)
     }
 
     #[test]
     fn should_compile_nop_lang() {
         let wasm = compile_nop_lang("");
+        let (mut store, instance) = create_wasmi_instance(&wasm);
 
-        create_wasmi_instance(&wasm);
+        let func = instance
+            .get_typed_func::<(), ()>(&mut store, "main")
+            .expect("couldn't find function");
+
+        func.call(&mut store, ()).expect("couldn't call function");
     }
 }
