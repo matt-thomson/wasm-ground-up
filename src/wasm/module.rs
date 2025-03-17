@@ -1,6 +1,7 @@
 use super::WasmEncodable;
 use super::section::{CodeSection, FunctionSection, TypeSection};
 
+#[derive(Default)]
 pub struct Module {
     r#type: TypeSection,
     function: FunctionSection,
@@ -22,15 +23,5 @@ impl WasmEncodable for Module {
         result.extend(self.code.wasm_encode());
 
         result
-    }
-}
-
-impl Module {
-    pub fn new() -> Self {
-        Self {
-            r#type: TypeSection::new(vec![]),
-            function: FunctionSection::new(vec![]),
-            code: CodeSection::new(vec![]),
-        }
     }
 }

@@ -1,5 +1,6 @@
 use super::Section;
 
+#[derive(Default)]
 pub struct FunctionSection {
     types: Vec<u32>,
 }

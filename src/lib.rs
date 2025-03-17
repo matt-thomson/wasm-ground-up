@@ -58,7 +58,7 @@ fn compile_nop_lang(input: &str) -> Vec<u8> {
     // .copied()
     // .collect()
 
-    let module = Module::new();
+    let module = Module::default();
 
     module.wasm_encode()
 }

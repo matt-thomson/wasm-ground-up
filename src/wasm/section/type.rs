@@ -35,6 +35,7 @@ impl FunctionType {
     }
 }
 
+#[derive(Default)]
 pub struct TypeSection {
     functions: Vec<FunctionType>,
 }

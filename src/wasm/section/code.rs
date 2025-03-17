@@ -48,6 +48,7 @@ impl FunctionCode {
     }
 }
 
+#[derive(Default)]
 pub struct CodeSection {
     functions: Vec<FunctionCode>,
 }
