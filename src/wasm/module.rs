@@ -1,10 +1,11 @@
-use super::section::{CodeSection, FunctionSection, TypeSection};
+use super::section::{CodeSection, ExportSection, FunctionSection, TypeSection};
 use super::{Instruction, WasmEncodable};
 
 #[derive(Default)]
 pub struct Module {
     r#type: TypeSection,
     function: FunctionSection,
+    export: ExportSection,
     code: CodeSection,
 }
 
@@ -20,6 +21,7 @@ impl WasmEncodable for Module {
 
         result.extend(self.r#type.wasm_encode());
         result.extend(self.function.wasm_encode());
+        result.extend(self.export.wasm_encode());
         result.extend(self.code.wasm_encode());
 
         result
@@ -27,9 +29,15 @@ impl WasmEncodable for Module {
 }
 
 impl Module {
-    pub fn add_function(&mut self, instructions: Vec<Instruction>) {
+    pub fn add_function(&mut self, instructions: Vec<Instruction>) -> u32 {
         let r#type = self.r#type.add_function();
-        self.function.add_function(r#type);
+        let index = self.function.add_function(r#type);
         self.code.add_function(instructions);
+
+        index
+    }
+
+    pub fn export_function(&mut self, name: &str, index: u32) {
+        self.export.add_function(name, index)
     }
 }

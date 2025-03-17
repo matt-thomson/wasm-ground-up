@@ -1,8 +1,10 @@
 mod code;
+mod export;
 mod function;
 mod r#type;
 
 pub use code::CodeSection;
+pub use export::ExportSection;
 pub use function::FunctionSection;
 pub use r#type::TypeSection;
 

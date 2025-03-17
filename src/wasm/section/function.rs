@@ -16,8 +16,10 @@ impl Section for FunctionSection {
 }
 
 impl FunctionSection {
-    pub fn add_function(&mut self, r#type: u32) {
+    pub fn add_function(&mut self, r#type: u32) -> u32 {
         self.types.push(r#type);
+
+        (self.types.len() - 1) as u32
     }
 }
 
