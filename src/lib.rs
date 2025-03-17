@@ -1,15 +1,15 @@
-use wasm::{Instruction, Module, WasmEncodable};
+use parser::Wafer;
+use wasm::{Module, ValueType, WasmEncodable};
 
 mod parser;
 mod wasm;
 
-fn compile_nop_lang(input: &str) -> Vec<u8> {
-    if !input.is_empty() {
-        panic!("Expected empty code, got {}", input);
-    }
+fn compile(input: &str) -> Vec<u8> {
+    let wafer = Wafer::parse(input);
+    let instructions = wafer.into_instructions();
 
     let mut module = Module::default();
-    let index = module.add_function(vec![], vec![], vec![Instruction::End]);
+    let index = module.add_function(vec![], vec![ValueType::I32], instructions);
     module.export_function("main", index);
 
     module.wasm_encode()
@@ -19,7 +19,7 @@ fn compile_nop_lang(input: &str) -> Vec<u8> {
 mod tests {
     use wasmi::{Engine, Instance, Module, Store};
 
-    use super::compile_nop_lang;
+    use super::compile;
 
     fn create_wasmi_instance(wasm: &[u8]) -> (Store<u32>, Instance) {
         let engine = Engine::default();
@@ -32,14 +32,15 @@ mod tests {
     }
 
     #[test]
-    fn should_compile_nop_lang() {
-        let wasm = compile_nop_lang("");
+    fn should_compile_number() {
+        let wasm = compile("123");
         let (mut store, instance) = create_wasmi_instance(&wasm);
 
         let func = instance
-            .get_typed_func::<(), ()>(&mut store, "main")
+            .get_typed_func::<(), i32>(&mut store, "main")
             .expect("couldn't find function");
 
-        func.call(&mut store, ()).expect("couldn't call function");
+        let x = func.call(&mut store, ()).expect("couldn't call function");
+        assert_eq!(x, 123);
     }
 }
