@@ -45,7 +45,7 @@ mod tests {
     }
 
     #[test]
-    fn should_compile_expression() {
+    fn should_compile_addition_expression() {
         let wasm = compile("123 + 456");
         let (mut store, instance) = create_wasmi_instance(&wasm);
 
@@ -55,5 +55,18 @@ mod tests {
 
         let x = func.call(&mut store, ()).expect("couldn't call function");
         assert_eq!(x, 579);
+    }
+
+    #[test]
+    fn should_compile_subtraction_expression() {
+        let wasm = compile("456 - 123");
+        let (mut store, instance) = create_wasmi_instance(&wasm);
+
+        let func = instance
+            .get_typed_func::<(), i32>(&mut store, "main")
+            .expect("couldn't find function");
+
+        let x = func.call(&mut store, ()).expect("couldn't call function");
+        assert_eq!(x, 333);
     }
 }

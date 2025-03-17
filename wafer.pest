@@ -1,6 +1,6 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n "}
 
 main = { expression }
-operation = { "+" }
+operation = { "+" | "-" }
 expression = { number ~ (operation ~ number)* }
 number = @{ ASCII_DIGIT+ }
