@@ -4,7 +4,7 @@ use wasm::{Module, ValueType, WasmEncodable};
 mod parser;
 mod wasm;
 
-fn compile(input: &str) -> Vec<u8> {
+pub fn compile(input: &str) -> Vec<u8> {
     let wafer = Wafer::parse(input);
     let instructions = wafer.into_instructions();
 
