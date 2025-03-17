@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+leb128 = "0.2.5"
 
 [dev-dependencies]
 wasmi = "0.42.0"
