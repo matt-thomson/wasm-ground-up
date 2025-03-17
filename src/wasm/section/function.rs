@@ -2,11 +2,11 @@ use super::Section;
 
 #[derive(Default)]
 pub struct FunctionSection {
-    types: Vec<u32>,
+    types: Vec<usize>,
 }
 
 impl Section for FunctionSection {
-    type Contents = Vec<u32>;
+    type Contents = Vec<usize>;
 
     const ID: u8 = 3;
 
@@ -16,10 +16,9 @@ impl Section for FunctionSection {
 }
 
 impl FunctionSection {
-    pub fn add_function(&mut self, r#type: u32) -> u32 {
+    pub fn add_function(&mut self, r#type: usize) -> usize {
         self.types.push(r#type);
-
-        (self.types.len() - 1) as u32
+        self.types.len() - 1
     }
 }
 

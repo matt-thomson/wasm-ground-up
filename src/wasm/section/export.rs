@@ -3,7 +3,7 @@ use crate::wasm::WasmEncodable;
 use super::Section;
 
 pub enum ExportDescription {
-    Function(u32),
+    Function(usize),
 }
 
 impl WasmEncodable for ExportDescription {
@@ -41,7 +41,7 @@ impl Section for ExportSection {
 }
 
 impl ExportSection {
-    pub fn add_function(&mut self, name: &str, index: u32) {
+    pub fn add_function(&mut self, name: &str, index: usize) {
         let export = Export {
             name: name.to_owned(),
             description: ExportDescription::Function(index),

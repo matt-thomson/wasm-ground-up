@@ -34,7 +34,7 @@ impl Module {
         parameters: Vec<ValueType>,
         returns: Vec<ValueType>,
         instructions: Vec<Instruction>,
-    ) -> u32 {
+    ) -> usize {
         let r#type = self.r#type.add_function(parameters, returns);
         let index = self.function.add_function(r#type);
         self.code.add_function(instructions);
@@ -42,7 +42,7 @@ impl Module {
         index
     }
 
-    pub fn export_function(&mut self, name: &str, index: u32) {
+    pub fn export_function(&mut self, name: &str, index: usize) {
         self.export.add_function(name, index);
     }
 }

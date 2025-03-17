@@ -35,14 +35,14 @@ impl Section for TypeSection {
 }
 
 impl TypeSection {
-    pub fn add_function(&mut self, parameters: Vec<ValueType>, returns: Vec<ValueType>) -> u32 {
+    pub fn add_function(&mut self, parameters: Vec<ValueType>, returns: Vec<ValueType>) -> usize {
         let index = self
             .functions
             .iter()
             .position(|f| f.parameters == parameters && f.returns == returns);
 
         if let Some(index) = index {
-            index as u32
+            index
         } else {
             let function = FunctionType {
                 parameters,
@@ -50,7 +50,7 @@ impl TypeSection {
             };
 
             self.functions.push(function);
-            (self.functions.len() - 1) as u32
+            self.functions.len() - 1
         }
     }
 }
