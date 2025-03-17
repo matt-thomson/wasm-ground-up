@@ -19,15 +19,6 @@ impl WasmEncodable for FunctionType {
     }
 }
 
-impl FunctionType {
-    pub fn new() -> Self {
-        Self {
-            parameters: vec![],
-            returns: vec![],
-        }
-    }
-}
-
 #[derive(Default)]
 pub struct TypeSection {
     functions: Vec<FunctionType>,
@@ -44,13 +35,20 @@ impl Section for TypeSection {
 }
 
 impl TypeSection {
-    pub fn add_function(&mut self) -> u32 {
-        let function = FunctionType::new();
-        let index = self.functions.iter().position(|f| *f == function);
+    pub fn add_function(&mut self, parameters: Vec<ValueType>, returns: Vec<ValueType>) -> u32 {
+        let index = self
+            .functions
+            .iter()
+            .position(|f| f.parameters == parameters && f.returns == returns);
 
         if let Some(index) = index {
             index as u32
         } else {
+            let function = FunctionType {
+                parameters,
+                returns,
+            };
+
             self.functions.push(function);
             (self.functions.len() - 1) as u32
         }
@@ -66,7 +64,7 @@ mod tests {
     #[test]
     fn should_encode_type_section_with_void_no_arg_function() {
         let mut section = TypeSection::default();
-        section.add_function();
+        section.add_function(vec![], vec![]);
 
         let wasm = section.wasm_encode();
 

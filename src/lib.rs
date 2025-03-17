@@ -9,7 +9,7 @@ fn compile_nop_lang(input: &str) -> Vec<u8> {
     }
 
     let mut module = Module::default();
-    let index = module.add_function(vec![Instruction::End]);
+    let index = module.add_function(vec![], vec![], vec![Instruction::End]);
     module.export_function("main", index);
 
     module.wasm_encode()
