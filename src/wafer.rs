@@ -41,6 +41,12 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                     }
                 }
             }
+            Rule::expression_statement => {
+                let expression = pair.into_inner().next().unwrap();
+                inner(expression, symbols, instructions);
+
+                instructions.push(Instruction::Drop);
+            }
             Rule::expression => {
                 let mut pairs = pair.into_inner();
                 inner(pairs.next().unwrap(), symbols, instructions);
@@ -133,5 +139,20 @@ mod tests {
                 Instruction::End
             ]
         );
+    }
+
+    #[test]
+    fn should_handle_expression_statement() {
+        let wafer = Wafer::parse("1; 2");
+
+        assert_eq!(
+            wafer.instructions,
+            vec![
+                Instruction::ConstI32(1),
+                Instruction::Drop,
+                Instruction::ConstI32(2),
+                Instruction::End
+            ]
+        )
     }
 }

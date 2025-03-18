@@ -10,5 +10,6 @@ primary_expression = _{ ("(" ~ expression ~ ")") | number | identifier }
 
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
+expression_statement = { expression ~ ";" }
 
-statement = _{ let_statement }
+statement = _{ let_statement | expression_statement }
