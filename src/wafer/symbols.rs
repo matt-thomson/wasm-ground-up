@@ -13,16 +13,12 @@ pub enum Symbol {
     LocalVariable(ValueType, usize),
 }
 
-fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, Symbol)> {
+fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = String> {
     pair.into_inner()
         .filter(|pair| pair.as_rule() == Rule::let_statement)
-        .enumerate()
-        .map(|(index, pair)| {
+        .map(|pair| {
             let pair = pair.into_inner().next().unwrap();
-            (
-                pair.as_str().to_string(),
-                Symbol::LocalVariable(ValueType::I32, index),
-            )
+            pair.as_str().to_string()
         })
 }
 
@@ -37,7 +33,10 @@ impl From<Pair<'_, Rule>> for Symbols {
                 let _params = pairs.next().unwrap();
                 let body = pairs.next().unwrap();
 
-                let symbols = local_symbols(body).collect();
+                let symbols = local_symbols(body)
+                    .enumerate()
+                    .map(|(index, name)| (name, Symbol::LocalVariable(ValueType::I32, index)))
+                    .collect();
 
                 (name.as_str().to_string(), symbols)
             })
