@@ -6,7 +6,7 @@ use pest::Parser as PestParser;
 use pest::iterators::Pair;
 use symbols::Symbols;
 
-use crate::wasm::Instruction;
+use crate::wasm::{Instruction, ValueType};
 
 #[derive(pest_derive::Parser)]
 #[grammar = "wafer.pest"]
@@ -77,7 +77,7 @@ impl<'a> Wafer<'a> {
                     inner(pair, symbols);
                 }
                 Rule::identifier => {
-                    symbols.add("main", pair.as_str());
+                    symbols.add_local("main", pair.as_str(), ValueType::I32);
                 }
                 Rule::expression | Rule::EOI => (),
                 _ => unreachable!(),
@@ -93,8 +93,8 @@ impl<'a> Wafer<'a> {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::wasm::Instruction;
+    use crate::wafer::symbols::Symbol;
+    use crate::wasm::{Instruction, ValueType};
 
     use super::Wafer;
 
@@ -112,7 +112,14 @@ mod tests {
         let wafer = Wafer::parse("let x = 1; let y = 2; 42");
         let symbols = wafer.symbols();
 
-        assert_eq!(symbols.get("main", "x"), Some(0));
-        assert_eq!(symbols.get("main", "y"), Some(1));
+        assert_eq!(
+            symbols.get("main", "x"),
+            Some(Symbol::LocalVariable(ValueType::I32, 0))
+        );
+
+        assert_eq!(
+            symbols.get("main", "y"),
+            Some(Symbol::LocalVariable(ValueType::I32, 1))
+        );
     }
 }
