@@ -130,13 +130,13 @@ impl Wafer {
                     let _params = pairs.next().unwrap();
                     let body = pairs.next().unwrap();
 
-                    let instructions = to_instructions(body, &name, &symbols);
+                    let instructions = to_instructions(body, name, &symbols);
 
                     functions.push(Function {
                         name: name.to_string(),
                         locals: symbols.locals(name),
                         instructions,
-                    })
+                    });
                 }
                 Rule::EOI => (),
                 _ => unreachable!(),
