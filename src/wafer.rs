@@ -25,6 +25,16 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                     inner(pair, symbols, instructions);
                 }
             }
+            Rule::let_statement => {
+                let mut pairs = pair.into_inner();
+
+                let identifier = pairs.next().unwrap().as_str();
+                let symbol = symbols.get("main", identifier);
+
+                let expression = pairs.next().unwrap();
+
+                inner(expression, symbols, instructions);
+            }
             Rule::expression => {
                 let mut pairs = pair.into_inner();
                 inner(pairs.next().unwrap(), symbols, instructions);
@@ -79,7 +89,7 @@ impl Wafer {
 
 #[cfg(test)]
 mod tests {
-    use crate::wasm::Instruction;
+    use crate::wasm::{Instruction, ValueType};
 
     use super::Wafer;
 
@@ -89,6 +99,21 @@ mod tests {
         assert_eq!(
             wafer.instructions,
             vec![Instruction::ConstI32(123), Instruction::End]
+        );
+    }
+
+    #[test]
+    fn should_handle_let_statement() {
+        let wafer = Wafer::parse("let x = 42; 1");
+
+        assert_eq!(wafer.locals, vec![ValueType::I32]);
+        assert_eq!(
+            wafer.instructions,
+            vec![
+                Instruction::ConstI32(42),
+                Instruction::ConstI32(1),
+                Instruction::End
+            ]
         );
     }
 }
