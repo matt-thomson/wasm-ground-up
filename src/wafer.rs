@@ -22,23 +22,23 @@ impl<'a> Wafer<'a> {
     }
 
     pub fn to_instructions(&self) -> Vec<Instruction> {
-        fn inner(pair: Pair<Rule>) -> Vec<Instruction> {
+        fn inner(pair: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
             match pair.as_rule() {
                 Rule::main => {
-                    let mut instructions = inner(pair.into_inner().next().unwrap());
+                    let mut instructions = inner(pair.into_inner().next().unwrap(), symbols);
                     instructions.push(Instruction::End);
 
                     instructions
                 }
                 Rule::expression => {
                     let mut pairs = pair.into_inner();
-                    let mut instructions = inner(pairs.next().unwrap());
+                    let mut instructions = inner(pairs.next().unwrap(), symbols);
 
                     while let Some(operation) = pairs.next() {
                         let operand = pairs.next().unwrap();
 
-                        instructions.extend(inner(operand));
-                        instructions.extend(inner(operation));
+                        instructions.extend(inner(operand, symbols));
+                        instructions.extend(inner(operation, symbols));
                     }
 
                     instructions
@@ -58,10 +58,11 @@ impl<'a> Wafer<'a> {
             }
         }
 
-        inner(self.0.clone())
+        let symbols = self.symbols();
+        inner(self.0.clone(), &symbols)
     }
 
-    pub fn symbols(&self) -> Symbols {
+    fn symbols(&self) -> Symbols {
         fn inner(pair: Pair<Rule>, symbols: &mut Symbols) {
             match pair.as_rule() {
                 Rule::main => {
