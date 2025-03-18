@@ -6,7 +6,7 @@ use pest::Parser as PestParser;
 use pest::iterators::Pair;
 use symbols::Symbols;
 
-use crate::wasm::{Instruction, ValueType};
+use crate::wasm::Instruction;
 
 #[derive(pest_derive::Parser)]
 #[grammar = "wafer.pest"]
@@ -58,19 +58,14 @@ impl<'a> Wafer<'a> {
             }
         }
 
-        let symbols = self.symbols();
+        let symbols = self.0.clone().into();
         inner(self.0.clone(), &symbols)
-    }
-
-    fn symbols(&self) -> Symbols {
-        self.0.clone().into()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::wafer::symbols::Symbol;
-    use crate::wasm::{Instruction, ValueType};
+    use crate::wasm::Instruction;
 
     use super::Wafer;
 
@@ -80,22 +75,6 @@ mod tests {
         assert_eq!(
             wafer.to_instructions(),
             vec![Instruction::ConstI32(123), Instruction::End]
-        );
-    }
-
-    #[test]
-    fn should_parse_symbols() {
-        let wafer = Wafer::parse("let x = 1; let y = 2; 42");
-        let symbols = wafer.symbols();
-
-        assert_eq!(
-            symbols.get("main", "x"),
-            Some(Symbol::LocalVariable(ValueType::I32, 0))
-        );
-
-        assert_eq!(
-            symbols.get("main", "y"),
-            Some(Symbol::LocalVariable(ValueType::I32, 1))
         );
     }
 }

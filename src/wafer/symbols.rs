@@ -6,7 +6,6 @@ use crate::wasm::ValueType;
 
 use super::Rule;
 
-#[derive(Default)]
 pub struct Symbols(HashMap<String, HashMap<String, Symbol>>);
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -50,14 +49,6 @@ impl From<Pair<'_, Rule>> for Symbols {
 }
 
 impl Symbols {
-    pub fn add_local(&mut self, function_name: &str, local_name: &str, r#type: ValueType) {
-        let symbols = self.0.entry(function_name.to_string()).or_default();
-        symbols.insert(
-            local_name.to_string(),
-            Symbol::LocalVariable(r#type, symbols.len()),
-        );
-    }
-
     pub fn get(&self, function_name: &str, local_name: &str) -> Option<Symbol> {
         self.0
             .get(function_name)
@@ -68,30 +59,29 @@ impl Symbols {
 
 #[cfg(test)]
 mod tests {
+    use pest::Parser as PestParser;
+
+    use crate::wafer::{Parser, Rule};
     use crate::wasm::ValueType;
 
     use super::{Symbol, Symbols};
 
     #[test]
-    fn should_build_symbols() {
-        let mut symbols = Symbols::default();
-
-        symbols.add_local("main", "y", ValueType::I32);
-        symbols.add_local("other", "x", ValueType::I32);
-        symbols.add_local("main", "x", ValueType::I32);
+    fn should_parse_symbols() {
+        let pair = Parser::parse(Rule::main, "let x = 1; let y = 2; 42")
+            .unwrap()
+            .next()
+            .unwrap();
+        let symbols: Symbols = pair.into();
 
         assert_eq!(
             symbols.get("main", "x"),
-            Some(Symbol::LocalVariable(ValueType::I32, 1))
+            Some(Symbol::LocalVariable(ValueType::I32, 0))
         );
+
         assert_eq!(
             symbols.get("main", "y"),
-            Some(Symbol::LocalVariable(ValueType::I32, 0))
+            Some(Symbol::LocalVariable(ValueType::I32, 1))
         );
-        assert_eq!(
-            symbols.get("other", "x"),
-            Some(Symbol::LocalVariable(ValueType::I32, 0))
-        );
-        assert_eq!(symbols.get("other", "y"), None);
     }
 }
