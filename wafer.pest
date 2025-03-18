@@ -1,9 +1,14 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
-main = { SOI ~ expression ~ EOI }
+main = { SOI ~ (statement)* ~ expression ~ EOI }
 
 operation = { "+" | "-" | "*" | "/" }
 number = @{ ASCII_DIGIT+ }
 
 expression = { primary_expression ~ (operation ~ primary_expression)* }
-primary_expression = _{ ("(" ~ expression ~ ")") | number }
+primary_expression = _{ ("(" ~ expression ~ ")") | number | identifier }
+
+identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
+
+statement = _{ let_statement }
