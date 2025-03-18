@@ -48,11 +48,12 @@ impl From<Pair<'_, Rule>> for Symbols {
 }
 
 impl Symbols {
-    pub fn get(&self, function_name: &str, local_name: &str) -> Option<Symbol> {
+    pub fn get(&self, function_name: &str, local_name: &str) -> Symbol {
         self.0
             .get(function_name)
             .and_then(|f| f.get(local_name))
             .copied()
+            .expect("couldn't find symbol")
     }
 
     pub fn locals(&self, function_name: &str) -> Vec<ValueType> {
@@ -89,12 +90,12 @@ mod tests {
 
         assert_eq!(
             symbols.get("main", "x"),
-            Some(Symbol::LocalVariable(ValueType::I32, 0))
+            Symbol::LocalVariable(ValueType::I32, 0)
         );
 
         assert_eq!(
             symbols.get("main", "y"),
-            Some(Symbol::LocalVariable(ValueType::I32, 1))
+            Symbol::LocalVariable(ValueType::I32, 1)
         );
     }
 
