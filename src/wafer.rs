@@ -18,43 +18,42 @@ pub struct Wafer {
 }
 
 fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
-    fn inner(pair: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
+    fn inner(pair: Pair<Rule>, symbols: &Symbols, instructions: &mut Vec<Instruction>) {
         match pair.as_rule() {
             Rule::main => {
-                let mut instructions = inner(pair.into_inner().next().unwrap(), symbols);
+                inner(pair.into_inner().next().unwrap(), symbols, instructions);
                 instructions.push(Instruction::End);
-
-                instructions
             }
             Rule::expression => {
                 let mut pairs = pair.into_inner();
-                let mut instructions = inner(pairs.next().unwrap(), symbols);
+                inner(pairs.next().unwrap(), symbols, instructions);
 
                 while let Some(operation) = pairs.next() {
                     let operand = pairs.next().unwrap();
 
-                    instructions.extend(inner(operand, symbols));
-                    instructions.extend(inner(operation, symbols));
+                    inner(operand, symbols, instructions);
+                    inner(operation, symbols, instructions);
                 }
-
-                instructions
             }
-            Rule::operation => match pair.as_str() {
-                "+" => vec![Instruction::AddI32],
-                "-" => vec![Instruction::SubtractI32],
-                "*" => vec![Instruction::MultiplyI32],
-                "/" => vec![Instruction::DivideSignedI32],
+            Rule::operation => instructions.push(match pair.as_str() {
+                "+" => Instruction::AddI32,
+                "-" => Instruction::SubtractI32,
+                "*" => Instruction::MultiplyI32,
+                "/" => Instruction::DivideSignedI32,
                 _ => unreachable!(),
-            },
+            }),
             Rule::number => {
                 let number = i32::from_str(pair.as_str()).expect("failed to parse number");
-                vec![Instruction::ConstI32(number)]
+                instructions.push(Instruction::ConstI32(number));
             }
             _ => unreachable!(),
         }
     }
 
-    inner(input, symbols)
+    let mut instructions = vec![];
+    inner(input, symbols, &mut instructions);
+
+    instructions
 }
 
 impl Wafer {
