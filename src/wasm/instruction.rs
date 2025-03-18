@@ -6,6 +6,8 @@ pub enum Instruction {
     ConstI32(i32),
     AddI32,
     SubtractI32,
+    MultiplyI32,
+    DivideSignedI32,
 }
 
 impl WasmEncodable for Instruction {
@@ -15,6 +17,8 @@ impl WasmEncodable for Instruction {
             Instruction::ConstI32(value) => [vec![0x41], value.wasm_encode()].concat(),
             Instruction::AddI32 => vec![0x6a],
             Instruction::SubtractI32 => vec![0x6b],
+            Instruction::MultiplyI32 => vec![0x6c],
+            Instruction::DivideSignedI32 => vec![0x6d],
         }
     }
 }

@@ -43,6 +43,8 @@ impl<'a> Wafer<'a> {
                 Rule::operation => match pair.as_str() {
                     "+" => vec![Instruction::AddI32],
                     "-" => vec![Instruction::SubtractI32],
+                    "*" => vec![Instruction::MultiplyI32],
+                    "/" => vec![Instruction::DivideSignedI32],
                     _ => unreachable!(),
                 },
                 Rule::number => {
