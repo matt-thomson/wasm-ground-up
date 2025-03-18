@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use pest::iterators::{Pair, Pairs};
+use pest::iterators::Pair;
 
 use crate::wasm::ValueType;
 
@@ -13,22 +13,21 @@ pub enum Symbol {
     LocalVariable(ValueType, usize),
 }
 
+fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, Symbol)> {
+    pair.into_inner()
+        .filter(|pair| pair.as_rule() == Rule::let_statement)
+        .enumerate()
+        .map(|(index, pair)| {
+            let pair = pair.into_inner().next().unwrap();
+            (
+                pair.as_str().to_string(),
+                Symbol::LocalVariable(ValueType::I32, index),
+            )
+        })
+}
+
 impl From<Pair<'_, Rule>> for Symbols {
     fn from(pair: Pair<Rule>) -> Self {
-        fn symbols_for_function(pairs: Pairs<Rule>) -> HashMap<String, Symbol> {
-            pairs
-                .filter(|pair| pair.as_rule() == Rule::let_statement)
-                .enumerate()
-                .map(|(index, pair)| {
-                    let pair = pair.into_inner().next().unwrap();
-                    (
-                        pair.as_str().to_string(),
-                        Symbol::LocalVariable(ValueType::I32, index),
-                    )
-                })
-                .collect()
-        }
-
         let symbols = pair
             .into_inner()
             .filter(|pair| pair.as_rule() == Rule::function)
@@ -38,10 +37,9 @@ impl From<Pair<'_, Rule>> for Symbols {
                 let _params = pairs.next().unwrap();
                 let body = pairs.next().unwrap();
 
-                (
-                    name.as_str().to_string(),
-                    symbols_for_function(body.into_inner()),
-                )
+                let symbols = local_symbols(body).collect();
+
+                (name.as_str().to_string(), symbols)
             })
             .collect();
 
