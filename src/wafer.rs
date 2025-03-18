@@ -12,9 +12,14 @@ use crate::wasm::{Instruction, ValueType};
 #[grammar = "wafer.pest"]
 struct Parser;
 
-pub struct Wafer {
+pub struct Function {
+    pub name: String,
     pub locals: Vec<(usize, ValueType)>,
     pub instructions: Vec<Instruction>,
+}
+
+pub struct Wafer {
+    pub functions: Vec<Function>,
 }
 
 fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
@@ -117,9 +122,14 @@ impl Wafer {
         let symbols = Symbols::from(parsed.clone());
         let instructions = to_instructions(parsed, &symbols);
 
-        Self {
+        let function = Function {
+            name: "main".to_string(),
             locals: symbols.locals("main"),
             instructions,
+        };
+
+        Self {
+            functions: vec![function],
         }
     }
 }
@@ -133,8 +143,10 @@ mod tests {
     #[test]
     fn should_parse_numbers() {
         let wafer = Wafer::parse("123");
+        let function = &wafer.functions[0];
+
         assert_eq!(
-            wafer.instructions,
+            function.instructions,
             vec![Instruction::ConstI32(123), Instruction::End]
         );
     }
@@ -142,10 +154,11 @@ mod tests {
     #[test]
     fn should_handle_let_statement() {
         let wafer = Wafer::parse("let x = 42; x * 2");
+        let function = &wafer.functions[0];
 
-        assert_eq!(wafer.locals, vec![(1, ValueType::I32)]);
+        assert_eq!(function.locals, vec![(1, ValueType::I32)]);
         assert_eq!(
-            wafer.instructions,
+            function.instructions,
             vec![
                 Instruction::ConstI32(42),
                 Instruction::LocalSetI32(0),
@@ -160,9 +173,10 @@ mod tests {
     #[test]
     fn should_handle_expression_statement() {
         let wafer = Wafer::parse("let x = 1; x := 2; 3");
+        let function = &wafer.functions[0];
 
         assert_eq!(
-            wafer.instructions,
+            function.instructions,
             vec![
                 Instruction::ConstI32(1),
                 Instruction::LocalSetI32(0),
