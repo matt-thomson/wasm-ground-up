@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 use pest::Parser as PestParser;
 use pest::iterators::Pair;
+use symbols::Symbols;
 
 use crate::wasm::Instruction;
 
@@ -59,6 +60,35 @@ impl<'a> Wafer<'a> {
 
         inner(self.0)
     }
+
+    pub fn symbols(&self) -> Symbols {
+        fn inner(pair: Pair<Rule>, symbols: &mut Symbols) {
+            match pair.as_rule() {
+                Rule::main => {
+                    let pairs = pair.into_inner();
+
+                    for pair in pairs {
+                        inner(pair, symbols);
+                    }
+                }
+                Rule::let_statement => {
+                    let pair = pair.into_inner().next().unwrap();
+                    inner(pair, symbols);
+                }
+                Rule::identifier => {
+                    symbols.add("main", pair.as_str());
+                }
+                Rule::expression => (),
+                Rule::EOI => (),
+                _ => unreachable!(),
+            }
+        }
+
+        let mut symbols = Symbols::default();
+        inner(self.0.clone(), &mut symbols);
+
+        symbols
+    }
 }
 
 #[cfg(test)]
@@ -75,5 +105,14 @@ mod tests {
             wafer.into_instructions(),
             vec![Instruction::ConstI32(123), Instruction::End]
         );
+    }
+
+    #[test]
+    fn should_parse_symbols() {
+        let wafer = Wafer::parse("let x = 1; let y = 2; 42");
+        let symbols = wafer.symbols();
+
+        assert_eq!(symbols.get("main", "x"), Some(0));
+        assert_eq!(symbols.get("main", "y"), Some(1));
     }
 }
