@@ -15,8 +15,6 @@ pub enum Symbol {
 
 impl From<Pair<'_, Rule>> for Symbols {
     fn from(value: Pair<Rule>) -> Self {
-        let mut symbols = HashMap::default();
-
         fn inner(pair: Pair<Rule>, symbols: &mut HashMap<String, HashMap<String, Symbol>>) {
             match pair.as_rule() {
                 Rule::main => {
@@ -42,6 +40,7 @@ impl From<Pair<'_, Rule>> for Symbols {
             }
         }
 
+        let mut symbols = HashMap::default();
         inner(value, &mut symbols);
 
         Self(symbols)
@@ -66,7 +65,7 @@ impl Symbols {
             .map(|value| match value {
                 Symbol::LocalVariable(value_type, _) => value_type,
             })
-            .cloned()
+            .copied()
             .collect()
     }
 }
