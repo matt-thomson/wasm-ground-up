@@ -1,4 +1,4 @@
-WHITESPACE = _{ " " | "\t" | "\r" | "\n "}
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
 main = { SOI ~ expression ~ EOI }
 
