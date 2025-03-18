@@ -78,8 +78,7 @@ impl<'a> Wafer<'a> {
                 Rule::identifier => {
                     symbols.add("main", pair.as_str());
                 }
-                Rule::expression => (),
-                Rule::EOI => (),
+                Rule::expression | Rule::EOI => (),
                 _ => unreachable!(),
             }
         }
