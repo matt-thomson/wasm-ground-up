@@ -1,7 +1,7 @@
-use parser::Wafer;
+use wafer::Wafer;
 use wasm::{Module, ValueType, WasmEncodable};
 
-mod parser;
+mod wafer;
 mod wasm;
 
 pub fn compile(input: &str) -> Vec<u8> {
