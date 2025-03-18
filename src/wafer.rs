@@ -21,7 +21,7 @@ impl<'a> Wafer<'a> {
         Self(parsed.next().unwrap())
     }
 
-    pub fn into_instructions(self) -> Vec<Instruction> {
+    pub fn to_instructions(&self) -> Vec<Instruction> {
         fn inner(pair: Pair<Rule>) -> Vec<Instruction> {
             match pair.as_rule() {
                 Rule::main => {
@@ -58,7 +58,7 @@ impl<'a> Wafer<'a> {
             }
         }
 
-        inner(self.0)
+        inner(self.0.clone())
     }
 
     pub fn symbols(&self) -> Symbols {
@@ -102,7 +102,7 @@ mod tests {
     fn should_parse_numbers() {
         let wafer = Wafer::parse("123");
         assert_eq!(
-            wafer.into_instructions(),
+            wafer.to_instructions(),
             vec![Instruction::ConstI32(123), Instruction::End]
         );
     }

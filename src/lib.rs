@@ -6,7 +6,7 @@ mod wasm;
 
 pub fn compile(input: &str) -> Vec<u8> {
     let wafer = Wafer::parse(input);
-    let instructions = wafer.into_instructions();
+    let instructions = wafer.to_instructions();
 
     let mut module = Module::default();
     let index = module.add_function(vec![], vec![ValueType::I32], instructions);
