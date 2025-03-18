@@ -1,3 +1,5 @@
+mod symbols;
+
 use std::str::FromStr;
 
 use pest::Parser as PestParser;
