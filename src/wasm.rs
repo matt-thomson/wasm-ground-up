@@ -48,3 +48,15 @@ impl WasmEncodable for String {
         [bytes.len().wasm_encode(), bytes].concat()
     }
 }
+
+impl<A, B> WasmEncodable for (A, B)
+where
+    A: WasmEncodable,
+    B: WasmEncodable,
+{
+    fn wasm_encode(&self) -> Vec<u8> {
+        let (a, b) = self;
+
+        [a.wasm_encode(), b.wasm_encode()].concat()
+    }
+}

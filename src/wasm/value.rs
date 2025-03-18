@@ -1,6 +1,6 @@
 use super::WasmEncodable;
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum ValueType {
     I32,
 }

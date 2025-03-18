@@ -3,7 +3,7 @@ use crate::wasm::{Instruction, ValueType, WasmEncodable};
 use super::Section;
 
 pub struct FunctionCode {
-    locals: Vec<ValueType>,
+    locals: Vec<(usize, ValueType)>,
     instructions: Vec<Instruction>,
 }
 
@@ -28,7 +28,7 @@ impl WasmEncodable for FunctionCode {
 }
 
 impl FunctionCode {
-    pub fn new(locals: Vec<ValueType>, instructions: Vec<Instruction>) -> Self {
+    pub fn new(locals: Vec<(usize, ValueType)>, instructions: Vec<Instruction>) -> Self {
         Self {
             locals,
             instructions,
@@ -52,7 +52,11 @@ impl Section for CodeSection {
 }
 
 impl CodeSection {
-    pub fn add_function(&mut self, locals: Vec<ValueType>, instructions: Vec<Instruction>) {
+    pub fn add_function(
+        &mut self,
+        locals: Vec<(usize, ValueType)>,
+        instructions: Vec<Instruction>,
+    ) {
         let function = FunctionCode::new(locals, instructions);
         self.functions.push(function);
     }
@@ -77,10 +81,10 @@ mod tests {
     #[test]
     fn should_encode_locals() {
         let mut section = CodeSection::default();
-        section.add_function(vec![ValueType::I32], vec![Instruction::End]);
+        section.add_function(vec![(1, ValueType::I32)], vec![Instruction::End]);
 
         let wasm = section.wasm_encode();
 
-        assert_eq!(wasm, vec![10, 5, 1, 3, 1, 0x7f, 0x0b]);
+        assert_eq!(wasm, vec![10, 6, 1, 4, 1, 1, 0x7f, 0x0b]);
     }
 }

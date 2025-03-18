@@ -56,17 +56,24 @@ impl Symbols {
             .expect("couldn't find symbol")
     }
 
-    pub fn locals(&self, function_name: &str) -> Vec<ValueType> {
+    pub fn locals(&self, function_name: &str) -> Vec<(usize, ValueType)> {
         let Some(symbols) = self.0.get(function_name) else {
             return vec![];
         };
 
-        symbols
-            .values()
-            .map(|value| match value {
-                Symbol::LocalVariable(value_type, _) => value_type,
-            })
-            .copied()
+        let mut locals: HashMap<ValueType, usize> = HashMap::new();
+
+        for symbol in symbols.values() {
+            match symbol {
+                Symbol::LocalVariable(r#type, _) => {
+                    *locals.entry(*r#type).or_insert(0) += 1;
+                }
+            }
+        }
+
+        locals
+            .into_iter()
+            .map(|(r#type, count)| (count, r#type))
             .collect()
     }
 }
@@ -107,7 +114,7 @@ mod tests {
             .unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(symbols.locals("main"), vec![ValueType::I32, ValueType::I32]);
+        assert_eq!(symbols.locals("main"), vec![(2, ValueType::I32)]);
         assert_eq!(symbols.locals("other"), vec![]);
     }
 }

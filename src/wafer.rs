@@ -13,7 +13,7 @@ use crate::wasm::{Instruction, ValueType};
 struct Parser;
 
 pub struct Wafer {
-    pub locals: Vec<ValueType>,
+    pub locals: Vec<(usize, ValueType)>,
     pub instructions: Vec<Instruction>,
 }
 
@@ -121,7 +121,7 @@ mod tests {
     fn should_handle_let_statement() {
         let wafer = Wafer::parse("let x = 42; x * 2");
 
-        assert_eq!(wafer.locals, vec![ValueType::I32]);
+        assert_eq!(wafer.locals, vec![(1, ValueType::I32)]);
         assert_eq!(
             wafer.instructions,
             vec![
