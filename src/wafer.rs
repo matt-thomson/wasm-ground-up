@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use pest::Parser as PestParser;
 use pest::iterators::Pair;
-use symbols::Symbols;
+use symbols::{Symbol, Symbols};
 
 use crate::wasm::{Instruction, ValueType};
 
@@ -36,7 +36,7 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                 inner(expression, symbols, instructions);
 
                 match symbol {
-                    symbols::Symbol::LocalVariable(ValueType::I32, index) => {
+                    Symbol::LocalVariable(ValueType::I32, index) => {
                         instructions.push(Instruction::LocalSetI32(index));
                     }
                 }
@@ -59,6 +59,15 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                 "/" => Instruction::DivideSignedI32,
                 _ => unreachable!(),
             }),
+            Rule::identifier => {
+                let symbol = symbols.get("main", pair.as_str());
+
+                match symbol {
+                    Symbol::LocalVariable(ValueType::I32, index) => {
+                        instructions.push(Instruction::LocalGetI32(index));
+                    }
+                }
+            }
             Rule::number => {
                 let number = i32::from_str(pair.as_str()).expect("failed to parse number");
                 instructions.push(Instruction::ConstI32(number));
@@ -110,7 +119,7 @@ mod tests {
 
     #[test]
     fn should_handle_let_statement() {
-        let wafer = Wafer::parse("let x = 42; 1");
+        let wafer = Wafer::parse("let x = 42; x * 2");
 
         assert_eq!(wafer.locals, vec![ValueType::I32]);
         assert_eq!(
@@ -118,7 +127,9 @@ mod tests {
             vec![
                 Instruction::ConstI32(42),
                 Instruction::LocalSetI32(0),
-                Instruction::ConstI32(1),
+                Instruction::LocalGetI32(0),
+                Instruction::ConstI32(2),
+                Instruction::MultiplyI32,
                 Instruction::End
             ]
         );
