@@ -13,6 +13,10 @@ pub enum Symbol {
     LocalVariable(ValueType, usize),
 }
 
+fn param_symbols(pair: Pair<Rule>) -> impl Iterator<Item = String> {
+    pair.into_inner().map(|p| p.as_str().to_string())
+}
+
 fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = String> {
     pair.into_inner()
         .filter(|pair| pair.as_rule() == Rule::let_statement)
@@ -30,10 +34,11 @@ impl From<Pair<'_, Rule>> for Symbols {
             .map(|pair| {
                 let mut pairs = pair.into_inner();
                 let name = pairs.next().unwrap();
-                let _params = pairs.next().unwrap();
+                let params = pairs.next().unwrap();
                 let body = pairs.next().unwrap();
 
-                let symbols = local_symbols(body)
+                let symbols = param_symbols(params)
+                    .chain(local_symbols(body))
                     .enumerate()
                     .map(|(index, name)| (name, Symbol::LocalVariable(ValueType::I32, index)))
                     .collect();
@@ -87,10 +92,10 @@ mod tests {
     use super::{Symbol, Symbols};
 
     const WAFER: &str = r#"
-       func first() {
+       func first(a) {
            let x = 1;
            let y = 2;
-           42
+           a + 42
        }
 
        func second() {
@@ -109,13 +114,18 @@ mod tests {
         let symbols: Symbols = pair.into();
 
         assert_eq!(
-            symbols.get("first", "x"),
+            symbols.get("first", "a"),
             Symbol::LocalVariable(ValueType::I32, 0)
         );
 
         assert_eq!(
-            symbols.get("first", "y"),
+            symbols.get("first", "x"),
             Symbol::LocalVariable(ValueType::I32, 1)
+        );
+
+        assert_eq!(
+            symbols.get("first", "y"),
+            Symbol::LocalVariable(ValueType::I32, 2)
         );
 
         assert_eq!(
@@ -129,7 +139,7 @@ mod tests {
         let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(symbols.locals("first"), vec![(2, ValueType::I32)]);
+        assert_eq!(symbols.locals("first"), vec![(3, ValueType::I32)]);
         assert_eq!(symbols.locals("second"), vec![(1, ValueType::I32)]);
         assert_eq!(symbols.locals("third"), vec![]);
     }
