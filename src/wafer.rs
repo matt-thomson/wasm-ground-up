@@ -21,8 +21,9 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
     fn inner(pair: Pair<Rule>, symbols: &Symbols, instructions: &mut Vec<Instruction>) {
         match pair.as_rule() {
             Rule::main => {
-                inner(pair.into_inner().next().unwrap(), symbols, instructions);
-                instructions.push(Instruction::End);
+                for pair in pair.into_inner() {
+                    inner(pair, symbols, instructions);
+                }
             }
             Rule::expression => {
                 let mut pairs = pair.into_inner();
@@ -45,6 +46,9 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
             Rule::number => {
                 let number = i32::from_str(pair.as_str()).expect("failed to parse number");
                 instructions.push(Instruction::ConstI32(number));
+            }
+            Rule::EOI => {
+                instructions.push(Instruction::End);
             }
             _ => unreachable!(),
         }
