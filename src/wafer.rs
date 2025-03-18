@@ -63,31 +63,7 @@ impl<'a> Wafer<'a> {
     }
 
     fn symbols(&self) -> Symbols {
-        fn inner(pair: Pair<Rule>, symbols: &mut Symbols) {
-            match pair.as_rule() {
-                Rule::main => {
-                    let pairs = pair.into_inner();
-
-                    for pair in pairs {
-                        inner(pair, symbols);
-                    }
-                }
-                Rule::let_statement => {
-                    let pair = pair.into_inner().next().unwrap();
-                    inner(pair, symbols);
-                }
-                Rule::identifier => {
-                    symbols.add_local("main", pair.as_str(), ValueType::I32);
-                }
-                Rule::expression | Rule::EOI => (),
-                _ => unreachable!(),
-            }
-        }
-
-        let mut symbols = Symbols::default();
-        inner(self.0.clone(), &mut symbols);
-
-        symbols
+        self.0.clone().into()
     }
 }
 

@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
+use pest::iterators::Pair;
+
 use crate::wasm::ValueType;
+
+use super::Rule;
 
 #[derive(Default)]
 pub struct Symbols(HashMap<String, HashMap<String, Symbol>>);
@@ -8,6 +12,41 @@ pub struct Symbols(HashMap<String, HashMap<String, Symbol>>);
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Symbol {
     LocalVariable(ValueType, usize),
+}
+
+impl From<Pair<'_, Rule>> for Symbols {
+    fn from(value: Pair<Rule>) -> Self {
+        let mut symbols = HashMap::default();
+
+        fn inner(pair: Pair<Rule>, symbols: &mut HashMap<String, HashMap<String, Symbol>>) {
+            match pair.as_rule() {
+                Rule::main => {
+                    let pairs = pair.into_inner();
+
+                    for pair in pairs {
+                        inner(pair, symbols);
+                    }
+                }
+                Rule::let_statement => {
+                    let pair = pair.into_inner().next().unwrap();
+                    inner(pair, symbols);
+                }
+                Rule::identifier => {
+                    let symbols = symbols.entry("main".to_string()).or_default();
+                    symbols.insert(
+                        pair.as_str().to_string(),
+                        Symbol::LocalVariable(ValueType::I32, symbols.len()),
+                    );
+                }
+                Rule::expression | Rule::EOI => (),
+                _ => unreachable!(),
+            }
+        }
+
+        inner(value, &mut symbols);
+
+        Self(symbols)
+    }
 }
 
 impl Symbols {
