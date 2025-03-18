@@ -16,6 +16,6 @@ let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
 expression_statement = { expression ~ ";" }
 statement = _{ let_statement | expression_statement }
 
-params = { "(" ~ identifier ~ ("," ~ identifier)* ~ ")" }
+params = { "(" ~ (identifier ~ ("," ~ identifier)*)? ~ ")" }
 block_expression = { "{" ~ (statement)* ~ expression ~ "}" }
-function = { "func" ~ identifier ~ params? ~ block_expression } 
+function = { "func" ~ identifier ~ params ~ block_expression } 

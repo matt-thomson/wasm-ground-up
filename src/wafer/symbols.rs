@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use pest::iterators::Pair;
+use pest::iterators::{Pair, Pairs};
 
 use crate::wasm::ValueType;
 
@@ -14,34 +14,43 @@ pub enum Symbol {
 }
 
 impl From<Pair<'_, Rule>> for Symbols {
-    fn from(value: Pair<Rule>) -> Self {
-        fn inner(pair: Pair<Rule>, symbols: &mut HashMap<String, HashMap<String, Symbol>>) {
-            match pair.as_rule() {
-                Rule::main => {
-                    let pairs = pair.into_inner();
-
-                    for pair in pairs {
-                        inner(pair, symbols);
-                    }
-                }
-                Rule::let_statement => {
+    fn from(pair: Pair<Rule>) -> Self {
+        fn symbols_for_function(pairs: Pairs<Rule>) -> HashMap<String, Symbol> {
+            pairs
+                .filter(|pair| pair.as_rule() == Rule::let_statement)
+                .enumerate()
+                .map(|(index, pair)| {
                     let pair = pair.into_inner().next().unwrap();
-                    inner(pair, symbols);
-                }
-                Rule::identifier => {
-                    let symbols = symbols.entry("main".to_string()).or_default();
-                    symbols.insert(
+                    (
                         pair.as_str().to_string(),
-                        Symbol::LocalVariable(ValueType::I32, symbols.len()),
-                    );
-                }
-                Rule::expression_statement | Rule::arithmetic_expression | Rule::EOI => (),
-                _ => unreachable!(),
-            }
+                        Symbol::LocalVariable(ValueType::I32, index),
+                    )
+                })
+                .collect()
         }
 
-        let mut symbols = HashMap::default();
-        inner(value, &mut symbols);
+        let symbols = match pair.as_rule() {
+            Rule::main => {
+                HashMap::from([("main".to_string(), symbols_for_function(pair.into_inner()))])
+            }
+
+            Rule::module => pair
+                .into_inner()
+                .filter(|pair| pair.as_rule() == Rule::function)
+                .map(|pair| {
+                    let mut pairs = pair.into_inner();
+                    let name = pairs.next().unwrap();
+                    let _params = pairs.next().unwrap();
+                    let body = pairs.next().unwrap();
+
+                    (
+                        name.as_str().to_string(),
+                        symbols_for_function(body.into_inner()),
+                    )
+                })
+                .collect(),
+            _ => unreachable!(),
+        };
 
         Self(symbols)
     }
@@ -87,34 +96,51 @@ mod tests {
 
     use super::{Symbol, Symbols};
 
+    const WAFER: &str = r#"
+       func first() {
+           let x = 1;
+           let y = 2;
+           42
+       }
+
+       func second() {
+           let y = 3;
+           0
+       }
+
+       func third() {
+           123
+       }
+    "#;
+
     #[test]
     fn should_parse_symbols() {
-        let pair = Parser::parse(Rule::main, "let x = 1; let y = 2; 42")
-            .unwrap()
-            .next()
-            .unwrap();
+        let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
         assert_eq!(
-            symbols.get("main", "x"),
+            symbols.get("first", "x"),
             Symbol::LocalVariable(ValueType::I32, 0)
         );
 
         assert_eq!(
-            symbols.get("main", "y"),
+            symbols.get("first", "y"),
             Symbol::LocalVariable(ValueType::I32, 1)
         );
+
+        assert_eq!(
+            symbols.get("second", "y"),
+            Symbol::LocalVariable(ValueType::I32, 0)
+        )
     }
 
     #[test]
     fn should_get_locals() {
-        let pair = Parser::parse(Rule::main, "let x = 1; let y = 2; 42")
-            .unwrap()
-            .next()
-            .unwrap();
+        let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(symbols.locals("main"), vec![(2, ValueType::I32)]);
-        assert_eq!(symbols.locals("other"), vec![]);
+        assert_eq!(symbols.locals("first"), vec![(2, ValueType::I32)]);
+        assert_eq!(symbols.locals("second"), vec![(1, ValueType::I32)]);
+        assert_eq!(symbols.locals("third"), vec![]);
     }
 }
