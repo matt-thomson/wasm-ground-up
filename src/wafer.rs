@@ -6,13 +6,14 @@ use pest::Parser as PestParser;
 use pest::iterators::Pair;
 use symbols::Symbols;
 
-use crate::wasm::Instruction;
+use crate::wasm::{Instruction, ValueType};
 
 #[derive(pest_derive::Parser)]
 #[grammar = "wafer.pest"]
 struct Parser;
 
 pub struct Wafer {
+    pub locals: Vec<ValueType>,
     pub instructions: Vec<Instruction>,
 }
 
@@ -66,7 +67,10 @@ impl Wafer {
         let symbols = Symbols::from(parsed.clone());
         let instructions = to_instructions(parsed, &symbols);
 
-        Self { instructions }
+        Self {
+            locals: symbols.locals("main"),
+            instructions,
+        }
     }
 }
 

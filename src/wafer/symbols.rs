@@ -55,6 +55,20 @@ impl Symbols {
             .and_then(|f| f.get(local_name))
             .copied()
     }
+
+    pub fn locals(&self, function_name: &str) -> Vec<ValueType> {
+        let Some(symbols) = self.0.get(function_name) else {
+            return vec![];
+        };
+
+        symbols
+            .values()
+            .map(|value| match value {
+                Symbol::LocalVariable(value_type, _) => value_type,
+            })
+            .cloned()
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -83,5 +97,17 @@ mod tests {
             symbols.get("main", "y"),
             Some(Symbol::LocalVariable(ValueType::I32, 1))
         );
+    }
+
+    #[test]
+    fn should_get_locals() {
+        let pair = Parser::parse(Rule::main, "let x = 1; let y = 2; 42")
+            .unwrap()
+            .next()
+            .unwrap();
+        let symbols: Symbols = pair.into();
+
+        assert_eq!(symbols.locals("main"), vec![ValueType::I32, ValueType::I32]);
+        assert_eq!(symbols.locals("other"), vec![]);
     }
 }
