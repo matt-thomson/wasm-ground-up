@@ -8,6 +8,7 @@ pub enum Instruction {
     SubtractI32,
     MultiplyI32,
     DivideSignedI32,
+    LocalSetI32(usize),
 }
 
 impl WasmEncodable for Instruction {
@@ -19,6 +20,7 @@ impl WasmEncodable for Instruction {
             Instruction::SubtractI32 => vec![0x6b],
             Instruction::MultiplyI32 => vec![0x6c],
             Instruction::DivideSignedI32 => vec![0x6d],
+            Instruction::LocalSetI32(index) => [vec![0x21], index.wasm_encode()].concat(),
         }
     }
 }

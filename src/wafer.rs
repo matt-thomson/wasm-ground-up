@@ -34,6 +34,12 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                 let expression = pairs.next().unwrap();
 
                 inner(expression, symbols, instructions);
+
+                match symbol {
+                    symbols::Symbol::LocalVariable(ValueType::I32, index) => {
+                        instructions.push(Instruction::LocalSetI32(index));
+                    }
+                }
             }
             Rule::expression => {
                 let mut pairs = pair.into_inner();
@@ -111,6 +117,7 @@ mod tests {
             wafer.instructions,
             vec![
                 Instruction::ConstI32(42),
+                Instruction::LocalSetI32(0),
                 Instruction::ConstI32(1),
                 Instruction::End
             ]
