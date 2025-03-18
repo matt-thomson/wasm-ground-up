@@ -35,7 +35,7 @@ impl From<Pair<'_, Rule>> for Symbols {
                         Symbol::LocalVariable(ValueType::I32, symbols.len()),
                     );
                 }
-                Rule::expression_statement | Rule::expression | Rule::EOI => (),
+                Rule::expression_statement | Rule::arithmetic_expression | Rule::EOI => (),
                 _ => unreachable!(),
             }
         }

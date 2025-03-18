@@ -47,7 +47,23 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
 
                 instructions.push(Instruction::Drop);
             }
-            Rule::expression => {
+            Rule::assignment_expression => {
+                let mut pairs = pair.into_inner();
+
+                let identifier = pairs.next().unwrap().as_str();
+                let symbol = symbols.get("main", identifier);
+
+                let expression = pairs.next().unwrap();
+
+                inner(expression, symbols, instructions);
+
+                match symbol {
+                    Symbol::LocalVariable(ValueType::I32, index) => {
+                        instructions.push(Instruction::LocalTeeI32(index));
+                    }
+                }
+            }
+            Rule::arithmetic_expression => {
                 let mut pairs = pair.into_inner();
                 inner(pairs.next().unwrap(), symbols, instructions);
 
@@ -143,14 +159,17 @@ mod tests {
 
     #[test]
     fn should_handle_expression_statement() {
-        let wafer = Wafer::parse("1; 2");
+        let wafer = Wafer::parse("let x = 1; x := 2; 3");
 
         assert_eq!(
             wafer.instructions,
             vec![
                 Instruction::ConstI32(1),
-                Instruction::Drop,
+                Instruction::LocalSetI32(0),
                 Instruction::ConstI32(2),
+                Instruction::LocalTeeI32(0),
+                Instruction::Drop,
+                Instruction::ConstI32(3),
                 Instruction::End
             ]
         )

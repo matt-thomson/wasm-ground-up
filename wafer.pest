@@ -4,12 +4,13 @@ main = { SOI ~ (statement)* ~ expression ~ EOI }
 
 operation = { "+" | "-" | "*" | "/" }
 number = @{ ASCII_DIGIT+ }
-
-expression = { primary_expression ~ (operation ~ primary_expression)* }
-primary_expression = _{ ("(" ~ expression ~ ")") | number | identifier }
-
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+
+assignment_expression = { identifier ~ ":=" ~ expression }
+arithmetic_expression = { primary_expression ~ (operation ~ primary_expression)* }
+primary_expression = _{ ("(" ~ expression ~ ")") | number | identifier }
+expression = _{ assignment_expression | arithmetic_expression }
+
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
 expression_statement = { expression ~ ";" }
-
 statement = _{ let_statement | expression_statement }
