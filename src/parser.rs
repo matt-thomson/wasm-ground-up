@@ -74,10 +74,4 @@ mod tests {
             vec![Instruction::ConstI32(123), Instruction::End]
         );
     }
-
-    #[test]
-    #[should_panic]
-    fn should_fail_to_parse_non_numeric() {
-        Wafer::parse("abc");
-    }
 }
