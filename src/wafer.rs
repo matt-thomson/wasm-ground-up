@@ -12,54 +12,61 @@ use crate::wasm::Instruction;
 #[grammar = "wafer.pest"]
 struct Parser;
 
-pub struct Wafer<'a>(Pair<'a, Rule>);
+pub struct Wafer {
+    pub instructions: Vec<Instruction>,
+}
 
-impl<'a> Wafer<'a> {
-    pub fn parse(input: &'a str) -> Self {
-        let mut parsed = Parser::parse(Rule::main, input).expect("failed to parse");
+fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
+    fn inner(pair: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
+        match pair.as_rule() {
+            Rule::main => {
+                let mut instructions = inner(pair.into_inner().next().unwrap(), symbols);
+                instructions.push(Instruction::End);
 
-        Self(parsed.next().unwrap())
+                instructions
+            }
+            Rule::expression => {
+                let mut pairs = pair.into_inner();
+                let mut instructions = inner(pairs.next().unwrap(), symbols);
+
+                while let Some(operation) = pairs.next() {
+                    let operand = pairs.next().unwrap();
+
+                    instructions.extend(inner(operand, symbols));
+                    instructions.extend(inner(operation, symbols));
+                }
+
+                instructions
+            }
+            Rule::operation => match pair.as_str() {
+                "+" => vec![Instruction::AddI32],
+                "-" => vec![Instruction::SubtractI32],
+                "*" => vec![Instruction::MultiplyI32],
+                "/" => vec![Instruction::DivideSignedI32],
+                _ => unreachable!(),
+            },
+            Rule::number => {
+                let number = i32::from_str(pair.as_str()).expect("failed to parse number");
+                vec![Instruction::ConstI32(number)]
+            }
+            _ => unreachable!(),
+        }
     }
 
-    pub fn to_instructions(&self) -> Vec<Instruction> {
-        fn inner(pair: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
-            match pair.as_rule() {
-                Rule::main => {
-                    let mut instructions = inner(pair.into_inner().next().unwrap(), symbols);
-                    instructions.push(Instruction::End);
+    inner(input, symbols)
+}
 
-                    instructions
-                }
-                Rule::expression => {
-                    let mut pairs = pair.into_inner();
-                    let mut instructions = inner(pairs.next().unwrap(), symbols);
+impl Wafer {
+    pub fn parse(input: &str) -> Self {
+        let parsed = Parser::parse(Rule::main, input)
+            .expect("failed to parse")
+            .next()
+            .unwrap();
 
-                    while let Some(operation) = pairs.next() {
-                        let operand = pairs.next().unwrap();
+        let symbols = Symbols::from(parsed.clone());
+        let instructions = to_instructions(parsed, &symbols);
 
-                        instructions.extend(inner(operand, symbols));
-                        instructions.extend(inner(operation, symbols));
-                    }
-
-                    instructions
-                }
-                Rule::operation => match pair.as_str() {
-                    "+" => vec![Instruction::AddI32],
-                    "-" => vec![Instruction::SubtractI32],
-                    "*" => vec![Instruction::MultiplyI32],
-                    "/" => vec![Instruction::DivideSignedI32],
-                    _ => unreachable!(),
-                },
-                Rule::number => {
-                    let number = i32::from_str(pair.as_str()).expect("failed to parse number");
-                    vec![Instruction::ConstI32(number)]
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        let symbols = self.0.clone().into();
-        inner(self.0.clone(), &symbols)
+        Self { instructions }
     }
 }
 
@@ -73,7 +80,7 @@ mod tests {
     fn should_parse_numbers() {
         let wafer = Wafer::parse("123");
         assert_eq!(
-            wafer.to_instructions(),
+            wafer.instructions,
             vec![Instruction::ConstI32(123), Instruction::End]
         );
     }
