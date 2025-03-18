@@ -51,7 +51,8 @@ mod tests {
     #[case("let x = 123; let y = 456; 702", 702)]
     #[case("let a = 13; let b = 15; a := 10; a + b", 25)]
     fn should_compile_correctly(#[case] input: &str, #[case] expected: i32) {
-        let wasm = compile(input);
+        let input = format!("func main() {{ {} }}", input);
+        let wasm = compile(&input);
         let (mut store, instance) = create_wasmi_instance(&wasm);
 
         let func = instance

@@ -22,12 +22,12 @@ pub struct Wafer {
     pub functions: Vec<Function>,
 }
 
-fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
-    fn inner(pair: Pair<Rule>, symbols: &Symbols, instructions: &mut Vec<Instruction>) {
+fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Instruction> {
+    fn inner(pair: Pair<Rule>, name: &str, symbols: &Symbols, instructions: &mut Vec<Instruction>) {
         match pair.as_rule() {
-            Rule::main => {
+            Rule::block_expression => {
                 for pair in pair.into_inner() {
-                    inner(pair, symbols, instructions);
+                    inner(pair, name, symbols, instructions);
                 }
 
                 instructions.push(Instruction::End);
@@ -36,11 +36,11 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let symbol = symbols.get("main", identifier);
+                let symbol = symbols.get(name, identifier);
 
                 let expression = pairs.next().unwrap();
 
-                inner(expression, symbols, instructions);
+                inner(expression, name, symbols, instructions);
 
                 match symbol {
                     Symbol::LocalVariable(ValueType::I32, index) => {
@@ -50,7 +50,7 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
             }
             Rule::expression_statement => {
                 let expression = pair.into_inner().next().unwrap();
-                inner(expression, symbols, instructions);
+                inner(expression, name, symbols, instructions);
 
                 instructions.push(Instruction::Drop);
             }
@@ -58,11 +58,11 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let symbol = symbols.get("main", identifier);
+                let symbol = symbols.get(name, identifier);
 
                 let expression = pairs.next().unwrap();
 
-                inner(expression, symbols, instructions);
+                inner(expression, name, symbols, instructions);
 
                 match symbol {
                     Symbol::LocalVariable(ValueType::I32, index) => {
@@ -72,13 +72,13 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
             }
             Rule::arithmetic_expression => {
                 let mut pairs = pair.into_inner();
-                inner(pairs.next().unwrap(), symbols, instructions);
+                inner(pairs.next().unwrap(), name, symbols, instructions);
 
                 while let Some(operation) = pairs.next() {
                     let operand = pairs.next().unwrap();
 
-                    inner(operand, symbols, instructions);
-                    inner(operation, symbols, instructions);
+                    inner(operand, name, symbols, instructions);
+                    inner(operation, name, symbols, instructions);
                 }
             }
             Rule::operation => instructions.push(match pair.as_str() {
@@ -89,7 +89,7 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
                 _ => unreachable!(),
             }),
             Rule::identifier => {
-                let symbol = symbols.get("main", pair.as_str());
+                let symbol = symbols.get(name, pair.as_str());
 
                 match symbol {
                     Symbol::LocalVariable(ValueType::I32, index) => {
@@ -107,30 +107,43 @@ fn to_instructions(input: Pair<Rule>, symbols: &Symbols) -> Vec<Instruction> {
     }
 
     let mut instructions = vec![];
-    inner(input, symbols, &mut instructions);
+    inner(input, name, symbols, &mut instructions);
 
     instructions
 }
 
 impl Wafer {
     pub fn parse(input: &str) -> Self {
-        let parsed = Parser::parse(Rule::main, input)
+        let parsed = Parser::parse(Rule::module, input)
             .expect("failed to parse")
             .next()
             .unwrap();
 
         let symbols = Symbols::from(parsed.clone());
-        let instructions = to_instructions(parsed, &symbols);
+        let mut functions = vec![];
 
-        let function = Function {
-            name: "main".to_string(),
-            locals: symbols.locals("main"),
-            instructions,
-        };
+        for pair in parsed.into_inner() {
+            match pair.as_rule() {
+                Rule::function => {
+                    let mut pairs = pair.into_inner();
+                    let name = pairs.next().unwrap().as_str();
+                    let _params = pairs.next().unwrap();
+                    let body = pairs.next().unwrap();
 
-        Self {
-            functions: vec![function],
+                    let instructions = to_instructions(body, &name, &symbols);
+
+                    functions.push(Function {
+                        name: name.to_string(),
+                        locals: symbols.locals(name),
+                        instructions,
+                    })
+                }
+                Rule::EOI => (),
+                _ => unreachable!(),
+            }
         }
+
+        Self { functions }
     }
 }
 
@@ -142,9 +155,11 @@ mod tests {
 
     #[test]
     fn should_parse_numbers() {
-        let wafer = Wafer::parse("123");
-        let function = &wafer.functions[0];
+        let wafer = Wafer::parse("func number() { 123 }");
+        assert_eq!(wafer.functions.len(), 1);
 
+        let function = &wafer.functions[0];
+        assert_eq!(function.name, "number");
         assert_eq!(
             function.instructions,
             vec![Instruction::ConstI32(123), Instruction::End]
@@ -153,7 +168,7 @@ mod tests {
 
     #[test]
     fn should_handle_let_statement() {
-        let wafer = Wafer::parse("let x = 42; x * 2");
+        let wafer = Wafer::parse("func letstmt() { let x = 42; x * 2 }");
         let function = &wafer.functions[0];
 
         assert_eq!(function.locals, vec![(1, ValueType::I32)]);
@@ -172,7 +187,7 @@ mod tests {
 
     #[test]
     fn should_handle_expression_statement() {
-        let wafer = Wafer::parse("let x = 1; x := 2; 3");
+        let wafer = Wafer::parse("func exprstmt() { let x = 1; x := 2; 3 }");
         let function = &wafer.functions[0];
 
         assert_eq!(
@@ -187,5 +202,14 @@ mod tests {
                 Instruction::End
             ]
         )
+    }
+
+    #[test]
+    fn should_handle_multiple_functions() {
+        let wafer = Wafer::parse("func one() { 1 } func two() { 2 }");
+
+        assert_eq!(wafer.functions.len(), 2);
+        assert_eq!(wafer.functions[0].name, "one");
+        assert_eq!(wafer.functions[1].name, "two");
     }
 }
