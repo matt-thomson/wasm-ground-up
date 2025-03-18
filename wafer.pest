@@ -1,6 +1,9 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n "}
 
-main = { expression }
+main = { SOI ~ expression ~ EOI }
+
 operation = { "+" | "-" | "*" | "/" }
-expression = { number ~ (operation ~ number)* }
 number = @{ ASCII_DIGIT+ }
+
+expression = { primary_expression ~ (operation ~ primary_expression)* }
+primary_expression = _{ ("(" ~ expression ~ ")") | number }

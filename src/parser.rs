@@ -51,7 +51,7 @@ impl<'a> Wafer<'a> {
                     let number = i32::from_str(pair.as_str()).expect("failed to parse number");
                     vec![Instruction::ConstI32(number)]
                 }
-                Rule::WHITESPACE => unreachable!(),
+                _ => unreachable!(),
             }
         }
 

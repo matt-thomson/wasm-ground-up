@@ -39,6 +39,8 @@ mod tests {
     #[case("7 - 3 + 11", 15)]
     #[case("12 * 3", 36)]
     #[case("37 / 4", 9)]
+    #[case("6 / (2 * 1)", 3)]
+    #[case("1 + (2 * 4) / 3", 3)]
     fn should_compile_correctly(#[case] input: &str, #[case] expected: i32) {
         let wasm = compile(input);
         let (mut store, instance) = create_wasmi_instance(&wasm);
