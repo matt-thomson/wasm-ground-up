@@ -1,9 +1,9 @@
-use crate::wasm::{Instruction, WasmEncodable};
+use crate::wasm::{Instruction, ValueType, WasmEncodable};
 
 use super::Section;
 
 pub struct FunctionCode {
-    locals: Vec<usize>,
+    locals: Vec<ValueType>,
     instructions: Vec<Instruction>,
 }
 
@@ -28,9 +28,9 @@ impl WasmEncodable for FunctionCode {
 }
 
 impl FunctionCode {
-    pub fn new(instructions: Vec<Instruction>) -> Self {
+    pub fn new(locals: Vec<ValueType>, instructions: Vec<Instruction>) -> Self {
         Self {
-            locals: vec![],
+            locals,
             instructions,
         }
     }
@@ -52,25 +52,35 @@ impl Section for CodeSection {
 }
 
 impl CodeSection {
-    pub fn add_function(&mut self, instructions: Vec<Instruction>) {
-        let function = FunctionCode::new(instructions);
+    pub fn add_function(&mut self, locals: Vec<ValueType>, instructions: Vec<Instruction>) {
+        let function = FunctionCode::new(locals, instructions);
         self.functions.push(function);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::wasm::WasmEncodable;
+    use crate::wasm::{ValueType, WasmEncodable};
 
     use super::{CodeSection, Instruction};
 
     #[test]
     fn should_encode_code_section_for_nop_function() {
         let mut section = CodeSection::default();
-        section.add_function(vec![Instruction::End]);
+        section.add_function(vec![], vec![Instruction::End]);
 
         let wasm = section.wasm_encode();
 
-        assert_eq!(wasm, vec![10, 4, 1, 2, 0, 11]);
+        assert_eq!(wasm, vec![10, 4, 1, 2, 0, 0x0b]);
+    }
+
+    #[test]
+    fn should_encode_locals() {
+        let mut section = CodeSection::default();
+        section.add_function(vec![ValueType::I32], vec![Instruction::End]);
+
+        let wasm = section.wasm_encode();
+
+        assert_eq!(wasm, vec![10, 5, 1, 3, 1, 0x7f, 0x0b]);
     }
 }

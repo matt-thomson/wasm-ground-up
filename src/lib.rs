@@ -9,7 +9,7 @@ pub fn compile(input: &str) -> Vec<u8> {
     let instructions = wafer.to_instructions();
 
     let mut module = Module::default();
-    let index = module.add_function(vec![], vec![ValueType::I32], instructions);
+    let index = module.add_function(vec![], vec![ValueType::I32], vec![], instructions);
     module.export_function("main", index);
 
     module.wasm_encode()

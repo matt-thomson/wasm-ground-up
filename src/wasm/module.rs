@@ -33,11 +33,12 @@ impl Module {
         &mut self,
         parameters: Vec<ValueType>,
         returns: Vec<ValueType>,
+        locals: Vec<ValueType>,
         instructions: Vec<Instruction>,
     ) -> usize {
         let r#type = self.r#type.add_function(parameters, returns);
         let index = self.function.add_function(r#type);
-        self.code.add_function(instructions);
+        self.code.add_function(locals, instructions);
 
         index
     }
