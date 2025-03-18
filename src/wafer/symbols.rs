@@ -29,28 +29,21 @@ impl From<Pair<'_, Rule>> for Symbols {
                 .collect()
         }
 
-        let symbols = match pair.as_rule() {
-            Rule::main => {
-                HashMap::from([("main".to_string(), symbols_for_function(pair.into_inner()))])
-            }
+        let symbols = pair
+            .into_inner()
+            .filter(|pair| pair.as_rule() == Rule::function)
+            .map(|pair| {
+                let mut pairs = pair.into_inner();
+                let name = pairs.next().unwrap();
+                let _params = pairs.next().unwrap();
+                let body = pairs.next().unwrap();
 
-            Rule::module => pair
-                .into_inner()
-                .filter(|pair| pair.as_rule() == Rule::function)
-                .map(|pair| {
-                    let mut pairs = pair.into_inner();
-                    let name = pairs.next().unwrap();
-                    let _params = pairs.next().unwrap();
-                    let body = pairs.next().unwrap();
-
-                    (
-                        name.as_str().to_string(),
-                        symbols_for_function(body.into_inner()),
-                    )
-                })
-                .collect(),
-            _ => unreachable!(),
-        };
+                (
+                    name.as_str().to_string(),
+                    symbols_for_function(body.into_inner()),
+                )
+            })
+            .collect();
 
         Self(symbols)
     }

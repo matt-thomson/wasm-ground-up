@@ -1,6 +1,5 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
-main = { SOI ~ (statement)* ~ expression ~ EOI }
 module = { SOI ~ (function)* ~ EOI }
 
 operation = { "+" | "-" | "*" | "/" }
