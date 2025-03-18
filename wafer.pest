@@ -1,6 +1,7 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
 main = { SOI ~ (statement)* ~ expression ~ EOI }
+module = { SOI ~ (function)* ~ EOI }
 
 operation = { "+" | "-" | "*" | "/" }
 number = @{ ASCII_DIGIT+ }
@@ -14,3 +15,7 @@ expression = _{ assignment_expression | arithmetic_expression }
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
 expression_statement = { expression ~ ";" }
 statement = _{ let_statement | expression_statement }
+
+params = { "(" ~ identifier ~ ("," ~ identifier)* ~ ")" }
+block_expression = { "{" ~ (statement)* ~ expression ~ "}" }
+function = { "func" ~ identifier ~ params? ~ block_expression } 
