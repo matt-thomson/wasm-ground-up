@@ -65,8 +65,25 @@ impl From<Pair<'_, Rule>> for Symbols {
                     functions.push((name.as_str().to_string(), symbols));
                 }
                 Rule::external_function => {
-                    let name = pair.into_inner().next().unwrap();
-                    imports.push((name.as_str().to_string(), HashMap::new()));
+                    let mut pairs = pair.into_inner();
+                    let name = pairs.next().unwrap();
+                    let params = pairs.next().unwrap();
+
+                    let symbols = param_symbols(params)
+                        .enumerate()
+                        .map(|(index, (name, kind))| {
+                            (
+                                name,
+                                Symbol {
+                                    index,
+                                    r#type: ValueType::I32,
+                                    kind,
+                                },
+                            )
+                        })
+                        .collect();
+
+                    imports.push((name.as_str().to_string(), symbols));
                 }
                 _ => (),
             }
@@ -182,6 +199,10 @@ mod tests {
         let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
+        assert_eq!(
+            symbols.parameters("import"),
+            vec![ValueType::I32, ValueType::I32]
+        );
         assert_eq!(symbols.parameters("first"), vec![ValueType::I32]);
         assert_eq!(symbols.parameters("second"), vec![]);
     }
