@@ -69,7 +69,7 @@ impl From<Pair<'_, Rule>> for Symbols {
 }
 
 impl Symbols {
-    pub fn get(&self, function_name: &str, local_name: &str) -> (ValueType, usize) {
+    pub fn local(&self, function_name: &str, local_name: &str) -> (ValueType, usize) {
         let symbol = self
             .0
             .get(function_name)
@@ -141,10 +141,10 @@ mod tests {
         let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(symbols.get("first", "a"), (ValueType::I32, 0));
-        assert_eq!(symbols.get("first", "x"), (ValueType::I32, 1));
-        assert_eq!(symbols.get("first", "y"), (ValueType::I32, 2));
-        assert_eq!(symbols.get("second", "y"), (ValueType::I32, 0))
+        assert_eq!(symbols.local("first", "a"), (ValueType::I32, 0));
+        assert_eq!(symbols.local("first", "x"), (ValueType::I32, 1));
+        assert_eq!(symbols.local("first", "y"), (ValueType::I32, 2));
+        assert_eq!(symbols.local("second", "y"), (ValueType::I32, 0))
     }
 
     #[test]

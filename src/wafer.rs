@@ -37,7 +37,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let (r#type, index) = symbols.get(name, identifier);
+                let (r#type, index) = symbols.local(name, identifier);
 
                 let expression = pairs.next().unwrap();
 
@@ -59,7 +59,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let (r#type, index) = symbols.get(name, identifier);
+                let (r#type, index) = symbols.local(name, identifier);
 
                 let expression = pairs.next().unwrap();
 
@@ -90,7 +90,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 _ => unreachable!(),
             }),
             Rule::identifier => {
-                let (r#type, index) = symbols.get(name, pair.as_str());
+                let (r#type, index) = symbols.local(name, pair.as_str());
 
                 match r#type {
                     ValueType::I32 => {
