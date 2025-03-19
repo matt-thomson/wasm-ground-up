@@ -26,8 +26,9 @@ primary_expression = _{
 expression = _{ assignment_expression | binary_expression }
 
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
+while_statement = { "while" ~ expression ~ block_expression }
 expression_statement = { expression ~ ";" }
-statement = _{ let_statement | expression_statement }
+statement = _{ let_statement | while_statement | expression_statement }
 
 params = { "(" ~ (identifier ~ ("," ~ identifier)*)? ~ ")" }
 block_expression = { "{" ~ (statement)* ~ expression ~ "}" }
