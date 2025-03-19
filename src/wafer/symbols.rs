@@ -103,6 +103,13 @@ impl Symbols {
             .collect()
     }
 
+    pub fn function(&self, function_name: &str) -> usize {
+        self.0
+            .iter()
+            .position(|(name, _)| function_name == name)
+            .expect("couldn't find function")
+    }
+
     fn symbols_for_function(&self, function_name: &str) -> &HashMap<String, Symbol> {
         self.0
             .iter()
@@ -166,5 +173,15 @@ mod tests {
 
         assert_eq!(symbols.parameters("first"), vec![ValueType::I32]);
         assert_eq!(symbols.parameters("second"), vec![]);
+    }
+
+    #[test]
+    fn should_get_functions() {
+        let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
+        let symbols: Symbols = pair.into();
+
+        assert_eq!(symbols.function("first"), 0);
+        assert_eq!(symbols.function("second"), 1);
+        assert_eq!(symbols.function("third"), 2);
     }
 }
