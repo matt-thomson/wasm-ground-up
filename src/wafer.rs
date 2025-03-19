@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use pest::Parser as PestParser;
 use pest::iterators::Pair;
-use symbols::{Symbol, Symbols};
+use symbols::Symbols;
 
 use crate::wasm::{Instruction, ValueType};
 
@@ -36,14 +36,14 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let symbol = symbols.get(name, identifier);
+                let (r#type, index) = symbols.get(name, identifier);
 
                 let expression = pairs.next().unwrap();
 
                 inner(expression, name, symbols, instructions);
 
-                match symbol {
-                    Symbol::LocalVariable(ValueType::I32, index) => {
+                match r#type {
+                    ValueType::I32 => {
                         instructions.push(Instruction::LocalSetI32(index));
                     }
                 }
@@ -58,14 +58,14 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let symbol = symbols.get(name, identifier);
+                let (r#type, index) = symbols.get(name, identifier);
 
                 let expression = pairs.next().unwrap();
 
                 inner(expression, name, symbols, instructions);
 
-                match symbol {
-                    Symbol::LocalVariable(ValueType::I32, index) => {
+                match r#type {
+                    ValueType::I32 => {
                         instructions.push(Instruction::LocalTeeI32(index));
                     }
                 }
@@ -89,10 +89,10 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 _ => unreachable!(),
             }),
             Rule::identifier => {
-                let symbol = symbols.get(name, pair.as_str());
+                let (r#type, index) = symbols.get(name, pair.as_str());
 
-                match symbol {
-                    Symbol::LocalVariable(ValueType::I32, index) => {
+                match r#type {
+                    ValueType::I32 => {
                         instructions.push(Instruction::LocalGetI32(index));
                     }
                 }

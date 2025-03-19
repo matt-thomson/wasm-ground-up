@@ -9,7 +9,7 @@ use super::Rule;
 pub struct Symbols(HashMap<String, HashMap<String, Symbol>>);
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Symbol {
+enum Symbol {
     LocalVariable(ValueType, usize),
 }
 
@@ -52,12 +52,16 @@ impl From<Pair<'_, Rule>> for Symbols {
 }
 
 impl Symbols {
-    pub fn get(&self, function_name: &str, local_name: &str) -> Symbol {
-        self.0
+    pub fn get(&self, function_name: &str, local_name: &str) -> (ValueType, usize) {
+        match self
+            .0
             .get(function_name)
             .and_then(|f| f.get(local_name))
             .copied()
             .expect("couldn't find symbol")
+        {
+            Symbol::LocalVariable(r#type, index) => (r#type, index),
+        }
     }
 
     pub fn locals(&self, function_name: &str) -> Vec<(usize, ValueType)> {
@@ -89,7 +93,7 @@ mod tests {
     use crate::wafer::{Parser, Rule};
     use crate::wasm::ValueType;
 
-    use super::{Symbol, Symbols};
+    use super::Symbols;
 
     const WAFER: &str = r#"
        func first(a) {
@@ -113,25 +117,10 @@ mod tests {
         let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(
-            symbols.get("first", "a"),
-            Symbol::LocalVariable(ValueType::I32, 0)
-        );
-
-        assert_eq!(
-            symbols.get("first", "x"),
-            Symbol::LocalVariable(ValueType::I32, 1)
-        );
-
-        assert_eq!(
-            symbols.get("first", "y"),
-            Symbol::LocalVariable(ValueType::I32, 2)
-        );
-
-        assert_eq!(
-            symbols.get("second", "y"),
-            Symbol::LocalVariable(ValueType::I32, 0)
-        )
+        assert_eq!(symbols.get("first", "a"), (ValueType::I32, 0));
+        assert_eq!(symbols.get("first", "x"), (ValueType::I32, 1));
+        assert_eq!(symbols.get("first", "y"), (ValueType::I32, 2));
+        assert_eq!(symbols.get("second", "y"), (ValueType::I32, 0))
     }
 
     #[test]
