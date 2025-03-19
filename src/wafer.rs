@@ -30,8 +30,6 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 for pair in pair.into_inner() {
                     inner(pair, name, symbols, instructions);
                 }
-
-                instructions.push(Instruction::End);
             }
             Rule::let_statement => {
                 let mut pairs = pair.into_inner();
@@ -96,6 +94,24 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
 
                 instructions.push(Instruction::Call(index));
             }
+            Rule::if_expression => {
+                let mut pairs = pair.into_inner();
+
+                let condition = pairs.next().unwrap();
+                inner(condition, name, symbols, instructions);
+
+                instructions.push(Instruction::If(Some(ValueType::I32)));
+
+                let then_block = pairs.next().unwrap();
+                inner(then_block, name, symbols, instructions);
+
+                instructions.push(Instruction::Else);
+
+                let else_block = pairs.next().unwrap();
+                inner(else_block, name, symbols, instructions);
+
+                instructions.push(Instruction::End);
+            }
             Rule::operation => instructions.push(match pair.as_str() {
                 "+" => Instruction::AddI32,
                 "-" => Instruction::SubtractI32,
@@ -124,6 +140,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
     let mut instructions = vec![];
     inner(input, name, symbols, &mut instructions);
 
+    instructions.push(Instruction::End);
     instructions
 }
 
@@ -269,5 +286,24 @@ mod tests {
                 Instruction::End
             ]
         );
+    }
+
+    #[test]
+    fn should_handle_if() {
+        let wafer = Wafer::parse("func iffy() { if 0 { 1 } else { 2 } }");
+        let function = &wafer.functions[0];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::ConstI32(0),
+                Instruction::If(Some(ValueType::I32)),
+                Instruction::ConstI32(1),
+                Instruction::Else,
+                Instruction::ConstI32(2),
+                Instruction::End,
+                Instruction::End
+            ]
+        )
     }
 }

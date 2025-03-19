@@ -1,8 +1,8 @@
-use super::WasmEncodable;
+use super::{ValueType, WasmEncodable};
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
-    If,
+    If(Option<ValueType>),
     Else,
     End,
     Call(usize),
@@ -20,7 +20,11 @@ pub enum Instruction {
 impl WasmEncodable for Instruction {
     fn wasm_encode(&self) -> Vec<u8> {
         match self {
-            Instruction::If => vec![0x04],
+            Instruction::If(r#type) => [
+                vec![0x04],
+                r#type.map(|t| t.wasm_encode()).unwrap_or(vec![0x40]),
+            ]
+            .concat(),
             Instruction::Else => vec![0x05],
             Instruction::End => vec![0x0b],
             Instruction::Call(index) => [vec![0x10], index.wasm_encode()].concat(),
