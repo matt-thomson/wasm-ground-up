@@ -1,0 +1,17 @@
+func main() {
+	fib(10)
+}
+
+func fib(n) {
+	let i = 0;
+	let a = 1;
+	let b = 1;
+
+	while i < n {
+		b := a + b;
+		a := b - a;
+		i := i + 1;
+	}
+
+	a
+}
