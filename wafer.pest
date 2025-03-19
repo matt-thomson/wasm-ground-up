@@ -11,7 +11,14 @@ args = { "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 assignment_expression = { identifier ~ ":=" ~ expression }
 arithmetic_expression = { primary_expression ~ (operation ~ primary_expression)* }
 call_expression = { identifier ~ args }
-primary_expression = _{ ("(" ~ expression ~ ")") | number | call_expression | identifier }
+if_expression = { "if" ~ expression ~ block_expression ~ "else" ~ (block_expression | if_expression) }
+primary_expression = _{
+    ("(" ~ expression ~ ")") |
+    number |
+    if_expression |
+    call_expression |
+    identifier
+}
 expression = _{ assignment_expression | arithmetic_expression }
 
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
