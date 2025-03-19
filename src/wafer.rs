@@ -47,6 +47,23 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                     }
                 }
             }
+            Rule::while_statement => {
+                instructions.push(Instruction::Loop(None));
+
+                let mut pairs = pair.into_inner();
+
+                let condition = pairs.next().unwrap();
+                inner(condition, name, symbols, instructions);
+
+                instructions.push(Instruction::If(None));
+
+                let body = pairs.next().unwrap();
+                inner(body, name, symbols, instructions);
+
+                instructions.push(Instruction::Break(1));
+                instructions.push(Instruction::End);
+                instructions.push(Instruction::End);
+            }
             Rule::expression_statement => {
                 let expression = pair.into_inner().next().unwrap();
                 inner(expression, name, symbols, instructions);
@@ -313,5 +330,26 @@ mod tests {
                 Instruction::End
             ]
         )
+    }
+
+    #[test]
+    fn should_handle_while() {
+        let wafer = Wafer::parse("func until() { while 0 { 1 } 2 }");
+        let function = &wafer.functions[0];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::Loop(None),
+                Instruction::ConstI32(0),
+                Instruction::If(None),
+                Instruction::ConstI32(1),
+                Instruction::Break(1),
+                Instruction::End,
+                Instruction::End,
+                Instruction::ConstI32(2),
+                Instruction::End,
+            ]
+        );
     }
 }
