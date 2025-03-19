@@ -3,6 +3,7 @@ use super::WasmEncodable;
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
     End,
+    Call(usize),
     Drop,
     ConstI32(i32),
     AddI32,
@@ -18,6 +19,7 @@ impl WasmEncodable for Instruction {
     fn wasm_encode(&self) -> Vec<u8> {
         match self {
             Instruction::End => vec![0x0b],
+            Instruction::Call(index) => [vec![0x10], index.wasm_encode()].concat(),
             Instruction::Drop => vec![0x1a],
             Instruction::ConstI32(value) => [vec![0x41], value.wasm_encode()].concat(),
             Instruction::AddI32 => vec![0x6a],

@@ -82,6 +82,14 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                     inner(operation, name, symbols, instructions);
                 }
             }
+            Rule::call_expression => {
+                let mut pairs = pair.into_inner();
+
+                let identifier = pairs.next().unwrap().as_str();
+                let index = symbols.function(identifier);
+
+                instructions.push(Instruction::Call(index));
+            }
             Rule::operation => instructions.push(match pair.as_str() {
                 "+" => Instruction::AddI32,
                 "-" => Instruction::SubtractI32,
@@ -103,7 +111,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 instructions.push(Instruction::ConstI32(number));
             }
             Rule::EOI => (),
-            _ => unreachable!(),
+            _ => unreachable!("{:#?}", pair),
         }
     }
 
@@ -221,5 +229,21 @@ mod tests {
         let function = &wafer.functions[0];
 
         assert_eq!(function.parameters, vec![ValueType::I32, ValueType::I32]);
+    }
+
+    #[test]
+    fn should_handle_function_call() {
+        let wafer = Wafer::parse("func one() { 1 } func caller() { one() + 2 }");
+        let function = &wafer.functions[1];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::Call(0),
+                Instruction::ConstI32(2),
+                Instruction::AddI32,
+                Instruction::End
+            ]
+        );
     }
 }
