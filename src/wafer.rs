@@ -88,6 +88,12 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let identifier = pairs.next().unwrap().as_str();
                 let index = symbols.function(identifier);
 
+                let args = pairs.next().unwrap();
+
+                for expression in args.into_inner() {
+                    inner(expression, name, symbols, instructions);
+                }
+
                 instructions.push(Instruction::Call(index));
             }
             Rule::operation => instructions.push(match pair.as_str() {
@@ -242,6 +248,24 @@ mod tests {
                 Instruction::Call(0),
                 Instruction::ConstI32(2),
                 Instruction::AddI32,
+                Instruction::End
+            ]
+        );
+    }
+
+    #[test]
+    fn should_handle_function_call_with_parameters() {
+        let wafer = Wafer::parse("func add(x, y) { x + y } func caller() { add(3, 4 + 5) }");
+        let function = &wafer.functions[1];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::ConstI32(3),
+                Instruction::ConstI32(4),
+                Instruction::ConstI32(5),
+                Instruction::AddI32,
+                Instruction::Call(0),
                 Instruction::End
             ]
         );
