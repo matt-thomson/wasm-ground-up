@@ -36,34 +36,43 @@ fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)>
 
 impl From<Pair<'_, Rule>> for Symbols {
     fn from(pair: Pair<Rule>) -> Self {
-        let symbols = pair
-            .into_inner()
-            .filter(|pair| pair.as_rule() == Rule::function)
-            .map(|pair| {
-                let mut pairs = pair.into_inner();
-                let name = pairs.next().unwrap();
-                let params = pairs.next().unwrap();
-                let body = pairs.next().unwrap();
+        let mut imports = vec![];
+        let mut functions = vec![];
 
-                let symbols = param_symbols(params)
-                    .chain(local_symbols(body))
-                    .enumerate()
-                    .map(|(index, (name, kind))| {
-                        (
-                            name,
-                            Symbol {
-                                index,
-                                r#type: ValueType::I32,
-                                kind,
-                            },
-                        )
-                    })
-                    .collect();
+        for pair in pair.into_inner() {
+            match pair.as_rule() {
+                Rule::function => {
+                    let mut pairs = pair.into_inner();
+                    let name = pairs.next().unwrap();
+                    let params = pairs.next().unwrap();
+                    let body = pairs.next().unwrap();
 
-                (name.as_str().to_string(), symbols)
-            })
-            .collect();
+                    let symbols = param_symbols(params)
+                        .chain(local_symbols(body))
+                        .enumerate()
+                        .map(|(index, (name, kind))| {
+                            (
+                                name,
+                                Symbol {
+                                    index,
+                                    r#type: ValueType::I32,
+                                    kind,
+                                },
+                            )
+                        })
+                        .collect();
 
+                    functions.push((name.as_str().to_string(), symbols));
+                }
+                Rule::external_function => {
+                    let name = pair.into_inner().next().unwrap();
+                    imports.push((name.as_str().to_string(), HashMap::new()));
+                }
+                _ => (),
+            }
+        }
+
+        let symbols = imports.into_iter().chain(functions).collect();
         Self(symbols)
     }
 }
@@ -129,20 +138,22 @@ mod tests {
     use super::Symbols;
 
     const WAFER: &str = r"
-       func first(a) {
-           let x = 1;
-           let y = 2;
-           a + 42
-       }
+        extern func import(a, b);
+    
+        func first(a) {
+            let x = 1;
+            let y = 2;
+            a + 42
+        }
 
-       func second() {
-           let y = 3;
-           0
-       }
+        func second() {
+            let y = 3;
+            0
+        }
 
-       func third() {
-           123
-       }
+        func third() {
+            123
+        }
     ";
 
     #[test]
@@ -180,8 +191,9 @@ mod tests {
         let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(symbols.function("first"), 0);
-        assert_eq!(symbols.function("second"), 1);
-        assert_eq!(symbols.function("third"), 2);
+        assert_eq!(symbols.function("import"), 0);
+        assert_eq!(symbols.function("first"), 1);
+        assert_eq!(symbols.function("second"), 2);
+        assert_eq!(symbols.function("third"), 3);
     }
 }
