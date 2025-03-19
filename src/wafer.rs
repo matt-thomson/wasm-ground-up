@@ -69,7 +69,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                     }
                 }
             }
-            Rule::arithmetic_expression => {
+            Rule::binary_expression => {
                 let mut pairs = pair.into_inner();
                 inner(pairs.next().unwrap(), name, symbols, instructions);
 
@@ -112,7 +112,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
 
                 instructions.push(Instruction::End);
             }
-            Rule::operation => instructions.push(match pair.as_str() {
+            Rule::binary_operation => instructions.push(match pair.as_str() {
                 "+" => Instruction::AddI32,
                 "-" => Instruction::SubtractI32,
                 "*" => Instruction::MultiplyI32,

@@ -2,14 +2,14 @@ WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
 module = { SOI ~ (function)* ~ EOI }
 
-operation = { "+" | "-" | "*" | "/" }
+binary_operation = { "+" | "-" | "*" | "/" }
 number = @{ ASCII_DIGIT+ }
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 args = { "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
 assignment_expression = { identifier ~ ":=" ~ expression }
-arithmetic_expression = { primary_expression ~ (operation ~ primary_expression)* }
+binary_expression = { primary_expression ~ (binary_operation ~ primary_expression)* }
 call_expression = { identifier ~ args }
 if_expression = { "if" ~ expression ~ block_expression ~ "else" ~ (block_expression | if_expression) }
 primary_expression = _{
@@ -19,7 +19,7 @@ primary_expression = _{
     call_expression |
     identifier
 }
-expression = _{ assignment_expression | arithmetic_expression }
+expression = _{ assignment_expression | binary_expression }
 
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
 expression_statement = { expression ~ ";" }
