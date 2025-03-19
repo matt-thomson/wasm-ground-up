@@ -1,0 +1,7 @@
+func main() {
+	 add(123, 456)
+}
+
+func add(x, y) {
+	x + y
+}

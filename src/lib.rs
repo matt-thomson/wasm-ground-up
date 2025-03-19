@@ -24,6 +24,8 @@ pub fn compile(input: &str) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
+    use std::fs::read_to_string;
+
     use rstest::rstest;
     use wasmi::{Engine, Instance, Module, Store};
 
@@ -64,21 +66,17 @@ mod tests {
     }
 
     #[rstest]
-    #[case("x * 2", 123, 246)]
-    fn should_compile_with_params_correctly(
-        #[case] input: &str,
-        #[case] x: i32,
-        #[case] expected: i32,
-    ) {
-        let input = format!("func main(x) {{ {} }}", input);
+    #[case("add", 579)]
+    fn should_compile_fixtures_correctly(#[case] fixture_name: &str, #[case] expected: i32) {
+        let input = read_to_string(format!("fixtures/{}.wafer", fixture_name)).unwrap();
         let wasm = compile(&input);
         let (mut store, instance) = create_wasmi_instance(&wasm);
 
         let func = instance
-            .get_typed_func::<i32, i32>(&mut store, "main")
+            .get_typed_func::<(), i32>(&mut store, "main")
             .expect("couldn't find function");
 
-        let result = func.call(&mut store, x).expect("couldn't call function");
+        let result = func.call(&mut store, ()).expect("couldn't call function");
         assert_eq!(result, expected);
     }
 }
