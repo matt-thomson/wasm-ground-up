@@ -8,6 +8,12 @@ pub fn compile(input: &str) -> Vec<u8> {
     let wafer = Wafer::parse(input);
     let mut module = Module::default();
 
+    let num_imports = wafer.imports.len();
+
+    for import in wafer.imports {
+        module.add_import(import.name, import.parameters, vec![ValueType::I32]);
+    }
+
     for function in wafer.functions {
         let index = module.add_function(
             function.parameters,
@@ -16,7 +22,7 @@ pub fn compile(input: &str) -> Vec<u8> {
             function.instructions,
         );
 
-        module.export_function(&function.name, index);
+        module.export_function(&function.name, num_imports + index);
     }
 
     module.wasm_encode()

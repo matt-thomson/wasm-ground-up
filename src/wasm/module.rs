@@ -29,6 +29,15 @@ impl WasmEncodable for Module {
 }
 
 impl Module {
+    pub fn add_import(
+        &mut self,
+        name: String,
+        parameters: Vec<ValueType>,
+        returns: Vec<ValueType>,
+    ) {
+        todo!();
+    }
+
     pub fn add_function(
         &mut self,
         parameters: Vec<ValueType>,
