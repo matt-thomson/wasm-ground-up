@@ -86,7 +86,10 @@ impl Symbols {
 
         let mut locals: HashMap<ValueType, usize> = HashMap::new();
 
-        for symbol in symbols.values() {
+        for symbol in symbols
+            .values()
+            .filter(|symbol| symbol.kind == SymbolKind::LocalVariable)
+        {
             *locals.entry(symbol.r#type).or_insert(0) += 1;
         }
 
@@ -149,7 +152,7 @@ mod tests {
         let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
         let symbols: Symbols = pair.into();
 
-        assert_eq!(symbols.locals("first"), vec![(3, ValueType::I32)]);
+        assert_eq!(symbols.locals("first"), vec![(2, ValueType::I32)]);
         assert_eq!(symbols.locals("second"), vec![(1, ValueType::I32)]);
         assert_eq!(symbols.locals("third"), vec![]);
     }
