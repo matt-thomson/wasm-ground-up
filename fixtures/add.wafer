@@ -1,7 +1,11 @@
+/*
+ * entry point
+ */
 func main() {
 	 add(123, 456)
 }
 
+// adds two numbers together
 func add(x, y) {
 	x + y
 }
