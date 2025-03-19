@@ -6,23 +6,30 @@ use crate::wasm::ValueType;
 
 use super::Rule;
 
+pub enum SymbolKind {
+    Parameter,
+    LocalVariable,
+}
+
+pub struct Symbol {
+    index: usize,
+    r#type: ValueType,
+    kind: SymbolKind,
+}
+
 pub struct Symbols(HashMap<String, HashMap<String, Symbol>>);
 
-#[derive(Debug, PartialEq, Copy, Clone)]
-enum Symbol {
-    LocalVariable(ValueType, usize),
+fn param_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)> {
+    pair.into_inner()
+        .map(|p| (p.as_str().to_string(), SymbolKind::Parameter))
 }
 
-fn param_symbols(pair: Pair<Rule>) -> impl Iterator<Item = String> {
-    pair.into_inner().map(|p| p.as_str().to_string())
-}
-
-fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = String> {
+fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)> {
     pair.into_inner()
         .filter(|pair| pair.as_rule() == Rule::let_statement)
         .map(|pair| {
             let pair = pair.into_inner().next().unwrap();
-            pair.as_str().to_string()
+            (pair.as_str().to_string(), SymbolKind::LocalVariable)
         })
 }
 
@@ -40,7 +47,16 @@ impl From<Pair<'_, Rule>> for Symbols {
                 let symbols = param_symbols(params)
                     .chain(local_symbols(body))
                     .enumerate()
-                    .map(|(index, name)| (name, Symbol::LocalVariable(ValueType::I32, index)))
+                    .map(|(index, (name, kind))| {
+                        (
+                            name,
+                            Symbol {
+                                index,
+                                r#type: ValueType::I32,
+                                kind,
+                            },
+                        )
+                    })
                     .collect();
 
                 (name.as_str().to_string(), symbols)
@@ -53,15 +69,13 @@ impl From<Pair<'_, Rule>> for Symbols {
 
 impl Symbols {
     pub fn get(&self, function_name: &str, local_name: &str) -> (ValueType, usize) {
-        match self
+        let symbol = self
             .0
             .get(function_name)
             .and_then(|f| f.get(local_name))
-            .copied()
-            .expect("couldn't find symbol")
-        {
-            Symbol::LocalVariable(r#type, index) => (r#type, index),
-        }
+            .expect("couldn't find symbol");
+
+        (symbol.r#type, symbol.index)
     }
 
     pub fn locals(&self, function_name: &str) -> Vec<(usize, ValueType)> {
@@ -72,11 +86,7 @@ impl Symbols {
         let mut locals: HashMap<ValueType, usize> = HashMap::new();
 
         for symbol in symbols.values() {
-            match symbol {
-                Symbol::LocalVariable(r#type, _) => {
-                    *locals.entry(*r#type).or_insert(0) += 1;
-                }
-            }
+            *locals.entry(symbol.r#type).or_insert(0) += 1;
         }
 
         locals
