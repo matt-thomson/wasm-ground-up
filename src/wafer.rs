@@ -217,7 +217,7 @@ mod tests {
                 Instruction::ConstI32(3),
                 Instruction::End
             ]
-        )
+        );
     }
 
     #[test]

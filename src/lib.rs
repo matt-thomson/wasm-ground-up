@@ -53,7 +53,7 @@ mod tests {
     #[case("let x = 123; let y = 456; 702", 702)]
     #[case("let a = 13; let b = 15; a := 10; a + b", 25)]
     fn should_compile_simple_cases_correctly(#[case] input: &str, #[case] expected: i32) {
-        let input = format!("func main() {{ {} }}", input);
+        let input = format!("func main() {{ {input} }}");
         let wasm = compile(&input);
         let (mut store, instance) = create_wasmi_instance(&wasm);
 
@@ -68,7 +68,7 @@ mod tests {
     #[rstest]
     #[case("add", 579)]
     fn should_compile_fixtures_correctly(#[case] fixture_name: &str, #[case] expected: i32) {
-        let input = read_to_string(format!("fixtures/{}.wafer", fixture_name)).unwrap();
+        let input = read_to_string(format!("fixtures/{fixture_name}.wafer")).unwrap();
         let wasm = compile(&input);
         let (mut store, instance) = create_wasmi_instance(&wasm);
 

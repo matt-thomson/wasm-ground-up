@@ -128,7 +128,7 @@ mod tests {
 
     use super::Symbols;
 
-    const WAFER: &str = r#"
+    const WAFER: &str = r"
        func first(a) {
            let x = 1;
            let y = 2;
@@ -143,7 +143,7 @@ mod tests {
        func third() {
            123
        }
-    "#;
+    ";
 
     #[test]
     fn should_parse_symbols() {
@@ -153,7 +153,7 @@ mod tests {
         assert_eq!(symbols.local("first", "a"), (ValueType::I32, 0));
         assert_eq!(symbols.local("first", "x"), (ValueType::I32, 1));
         assert_eq!(symbols.local("first", "y"), (ValueType::I32, 2));
-        assert_eq!(symbols.local("second", "y"), (ValueType::I32, 0))
+        assert_eq!(symbols.local("second", "y"), (ValueType::I32, 0));
     }
 
     #[test]
