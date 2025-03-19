@@ -27,9 +27,10 @@ expression = _{ assignment_expression | binary_expression }
 
 block_statements = { "{" ~ (statement)* ~ "}" }
 let_statement = { "let" ~ identifier ~ "=" ~ expression ~ ";" }
+if_statement = { "if" ~ expression ~ block_statements ~ ("else" ~ (block_statements | if_statement))? }
 while_statement = { "while" ~ expression ~ block_statements }
 expression_statement = { expression ~ ";" }
-statement = _{ let_statement | while_statement | expression_statement }
+statement = _{ let_statement | if_statement | while_statement | expression_statement }
 
 params = { "(" ~ (identifier ~ ("," ~ identifier)*)? ~ ")" }
 block_expression = { "{" ~ (statement)* ~ expression ~ "}" }

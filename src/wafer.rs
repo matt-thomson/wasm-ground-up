@@ -47,6 +47,23 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                     }
                 }
             }
+            Rule::if_statement => {
+                let mut pairs = pair.into_inner();
+
+                let condition = pairs.next().unwrap();
+                inner(condition, name, symbols, instructions);
+                instructions.push(Instruction::If(Some(ValueType::I32)));
+
+                let then_block = pairs.next().unwrap();
+                inner(then_block, name, symbols, instructions);
+
+                if let Some(else_block) = pairs.next() {
+                    instructions.push(Instruction::Else);
+                    inner(else_block, name, symbols, instructions);
+                }
+
+                instructions.push(Instruction::End);
+            }
             Rule::while_statement => {
                 instructions.push(Instruction::Loop(None));
 
@@ -314,7 +331,7 @@ mod tests {
     }
 
     #[test]
-    fn should_handle_if() {
+    fn should_handle_if_expression() {
         let wafer = Wafer::parse("func iffy() { if 0 { 1 } else { 2 } }");
         let function = &wafer.functions[0];
 
@@ -330,6 +347,33 @@ mod tests {
                 Instruction::End
             ]
         )
+    }
+
+    #[test]
+    fn should_handle_if_statement() {
+        let wafer = Wafer::parse("func iffy() { if 0 { 1; } if 2 { 3; } else { 4; } 5 }");
+        let function = &wafer.functions[0];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::ConstI32(0),
+                Instruction::If(Some(ValueType::I32)),
+                Instruction::ConstI32(1),
+                Instruction::Drop,
+                Instruction::End,
+                Instruction::ConstI32(2),
+                Instruction::If(Some(ValueType::I32)),
+                Instruction::ConstI32(3),
+                Instruction::Drop,
+                Instruction::Else,
+                Instruction::ConstI32(4),
+                Instruction::Drop,
+                Instruction::End,
+                Instruction::ConstI32(5),
+                Instruction::End
+            ]
+        );
     }
 
     #[test]
