@@ -18,7 +18,7 @@ pub struct Symbol {
     kind: SymbolKind,
 }
 
-pub struct Symbols(HashMap<String, HashMap<String, Symbol>>);
+pub struct Symbols(Vec<(String, HashMap<String, Symbol>)>);
 
 fn param_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)> {
     pair.into_inner()
@@ -104,7 +104,11 @@ impl Symbols {
     }
 
     fn symbols_for_function(&self, function_name: &str) -> &HashMap<String, Symbol> {
-        self.0.get(function_name).expect("couldn't find symbols")
+        self.0
+            .iter()
+            .find(|(name, _)| name == function_name)
+            .map(|(_, symbols)| symbols)
+            .expect("couldn't find symbols")
     }
 }
 
