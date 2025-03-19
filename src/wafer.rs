@@ -346,7 +346,7 @@ mod tests {
                 Instruction::End,
                 Instruction::End
             ]
-        )
+        );
     }
 
     #[test]
