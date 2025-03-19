@@ -12,6 +12,11 @@ use crate::wasm::{Instruction, ValueType};
 #[grammar = "wafer.pest"]
 struct Parser;
 
+pub struct Import {
+    pub name: String,
+    pub parameters: Vec<ValueType>,
+}
+
 pub struct Function {
     pub name: String,
     pub parameters: Vec<ValueType>,
@@ -20,6 +25,7 @@ pub struct Function {
 }
 
 pub struct Wafer {
+    pub imports: Vec<Import>,
     pub functions: Vec<Function>,
 }
 
@@ -194,10 +200,19 @@ impl Wafer {
             .unwrap();
 
         let symbols = Symbols::from(parsed.clone());
+        let mut imports = vec![];
         let mut functions = vec![];
 
         for pair in parsed.into_inner() {
             match pair.as_rule() {
+                Rule::external_function => {
+                    let name = pair.into_inner().next().unwrap().as_str();
+
+                    imports.push(Import {
+                        name: name.to_string(),
+                        parameters: symbols.parameters(name),
+                    });
+                }
                 Rule::function => {
                     let mut pairs = pair.into_inner();
                     let name = pairs.next().unwrap().as_str();
@@ -218,7 +233,7 @@ impl Wafer {
             }
         }
 
-        Self { functions }
+        Self { imports, functions }
     }
 }
 
@@ -396,5 +411,14 @@ mod tests {
                 Instruction::End,
             ]
         );
+    }
+
+    #[test]
+    fn should_handle_imports() {
+        let wafer = Wafer::parse("extern func add(a, b);");
+        let import = &wafer.imports[0];
+
+        assert_eq!(import.name, "add");
+        assert_eq!(import.parameters, vec![ValueType::I32, ValueType::I32]);
     }
 }
