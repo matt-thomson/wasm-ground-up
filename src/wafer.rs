@@ -26,7 +26,7 @@ pub struct Wafer {
 fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Instruction> {
     fn inner(pair: Pair<Rule>, name: &str, symbols: &Symbols, instructions: &mut Vec<Instruction>) {
         match pair.as_rule() {
-            Rule::block_expression => {
+            Rule::block_expression | Rule::block_statements => {
                 for pair in pair.into_inner() {
                     inner(pair, name, symbols, instructions);
                 }
@@ -334,7 +334,7 @@ mod tests {
 
     #[test]
     fn should_handle_while() {
-        let wafer = Wafer::parse("func until() { while 0 { 1 } 2 }");
+        let wafer = Wafer::parse("func until() { while 0 { 1; } 2 }");
         let function = &wafer.functions[0];
 
         assert_eq!(
@@ -344,6 +344,7 @@ mod tests {
                 Instruction::ConstI32(0),
                 Instruction::If(None),
                 Instruction::ConstI32(1),
+                Instruction::Drop,
                 Instruction::Break(1),
                 Instruction::End,
                 Instruction::End,
