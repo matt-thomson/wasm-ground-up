@@ -10,7 +10,7 @@ pub fn compile(input: &str) -> Vec<u8> {
 
     for function in wafer.functions {
         let index = module.add_function(
-            vec![],
+            function.parameters,
             vec![ValueType::I32],
             function.locals,
             function.instructions,
@@ -50,7 +50,7 @@ mod tests {
     #[case("1 + (2 * 4) / 3", 3)]
     #[case("let x = 123; let y = 456; 702", 702)]
     #[case("let a = 13; let b = 15; a := 10; a + b", 25)]
-    fn should_compile_correctly(#[case] input: &str, #[case] expected: i32) {
+    fn should_compile_simple_cases_correctly(#[case] input: &str, #[case] expected: i32) {
         let input = format!("func main() {{ {} }}", input);
         let wasm = compile(&input);
         let (mut store, instance) = create_wasmi_instance(&wasm);
@@ -59,7 +59,26 @@ mod tests {
             .get_typed_func::<(), i32>(&mut store, "main")
             .expect("couldn't find function");
 
-        let x = func.call(&mut store, ()).expect("couldn't call function");
-        assert_eq!(x, expected);
+        let result = func.call(&mut store, ()).expect("couldn't call function");
+        assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case("x * 2", 123, 246)]
+    fn should_compile_with_params_correctly(
+        #[case] input: &str,
+        #[case] x: i32,
+        #[case] expected: i32,
+    ) {
+        let input = format!("func main(x) {{ {} }}", input);
+        let wasm = compile(&input);
+        let (mut store, instance) = create_wasmi_instance(&wasm);
+
+        let func = instance
+            .get_typed_func::<i32, i32>(&mut store, "main")
+            .expect("couldn't find function");
+
+        let result = func.call(&mut store, x).expect("couldn't call function");
+        assert_eq!(result, expected);
     }
 }
