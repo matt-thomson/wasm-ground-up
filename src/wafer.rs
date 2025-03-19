@@ -14,6 +14,7 @@ struct Parser;
 
 pub struct Function {
     pub name: String,
+    pub parameters: Vec<ValueType>,
     pub locals: Vec<(usize, ValueType)>,
     pub instructions: Vec<Instruction>,
 }
@@ -134,6 +135,7 @@ impl Wafer {
 
                     functions.push(Function {
                         name: name.to_string(),
+                        parameters: symbols.parameters(name),
                         locals: symbols.locals(name),
                         instructions,
                     });
@@ -211,5 +213,13 @@ mod tests {
         assert_eq!(wafer.functions.len(), 2);
         assert_eq!(wafer.functions[0].name, "one");
         assert_eq!(wafer.functions[1].name, "two");
+    }
+
+    #[test]
+    fn should_handle_function_with_parameters() {
+        let wafer = Wafer::parse("func withparams(x, y) { x + y }");
+        let function = &wafer.functions[0];
+
+        assert_eq!(function.parameters, vec![ValueType::I32, ValueType::I32]);
     }
 }
