@@ -71,22 +71,18 @@ impl From<Pair<'_, Rule>> for Symbols {
 impl Symbols {
     pub fn local(&self, function_name: &str, local_name: &str) -> (ValueType, usize) {
         let symbol = self
-            .0
-            .get(function_name)
-            .and_then(|f| f.get(local_name))
+            .symbols_for_function(function_name)
+            .get(local_name)
             .expect("couldn't find symbol");
 
         (symbol.r#type, symbol.index)
     }
 
     pub fn locals(&self, function_name: &str) -> Vec<(usize, ValueType)> {
-        let Some(symbols) = self.0.get(function_name) else {
-            return vec![];
-        };
-
         let mut locals: HashMap<ValueType, usize> = HashMap::new();
 
-        for symbol in symbols
+        for symbol in self
+            .symbols_for_function(function_name)
             .values()
             .filter(|symbol| symbol.kind == SymbolKind::LocalVariable)
         {
@@ -100,13 +96,15 @@ impl Symbols {
     }
 
     pub fn parameters(&self, function_name: &str) -> Vec<ValueType> {
-        self.0
-            .get(function_name)
-            .expect("couldn't find symbols")
+        self.symbols_for_function(function_name)
             .values()
             .filter(|symbol| symbol.kind == SymbolKind::Parameter)
             .map(|symbol| symbol.r#type)
             .collect()
+    }
+
+    fn symbols_for_function(&self, function_name: &str) -> &HashMap<String, Symbol> {
+        self.0.get(function_name).expect("couldn't find symbols")
     }
 }
 
