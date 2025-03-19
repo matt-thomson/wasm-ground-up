@@ -69,6 +69,7 @@ mod tests {
     #[case("add", 579)]
     #[case("if", 4)]
     #[case("binary_ops", 22937)]
+    #[case("fib_recursive", 89)]
     fn should_compile_fixtures_correctly(#[case] fixture_name: &str, #[case] expected: i32) {
         let input = read_to_string(format!("fixtures/{fixture_name}.wafer")).unwrap();
         let wasm = compile(&input);
