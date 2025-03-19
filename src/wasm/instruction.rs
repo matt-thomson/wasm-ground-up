@@ -2,6 +2,8 @@ use super::WasmEncodable;
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
+    If,
+    Else,
     End,
     Call(usize),
     Drop,
@@ -18,6 +20,8 @@ pub enum Instruction {
 impl WasmEncodable for Instruction {
     fn wasm_encode(&self) -> Vec<u8> {
         match self {
+            Instruction::If => vec![0x04],
+            Instruction::Else => vec![0x05],
             Instruction::End => vec![0x0b],
             Instruction::Call(index) => [vec![0x10], index.wasm_encode()].concat(),
             Instruction::Drop => vec![0x1a],
