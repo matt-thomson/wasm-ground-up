@@ -2,7 +2,11 @@ WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 
 module = { SOI ~ (function)* ~ EOI }
 
-binary_operation = { "+" | "-" | "*" | "/" }
+arithmetic_operation = _{ "+" | "-" | "*" | "/" }
+comparison_operation = _{ "==" | "!=" | "<=" | "<" | ">=" | ">" }
+logical_operation = _{ "and" | "or" }
+binary_operation = { arithmetic_operation | comparison_operation | logical_operation }
+
 number = @{ ASCII_DIGIT+ }
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
