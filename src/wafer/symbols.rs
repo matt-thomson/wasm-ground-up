@@ -6,6 +6,7 @@ use crate::wasm::ValueType;
 
 use super::Rule;
 
+#[derive(PartialEq)]
 pub enum SymbolKind {
     Parameter,
     LocalVariable,
@@ -94,6 +95,16 @@ impl Symbols {
             .map(|(r#type, count)| (count, r#type))
             .collect()
     }
+
+    pub fn parameters(&self, function_name: &str) -> Vec<ValueType> {
+        self.0
+            .get(function_name)
+            .expect("couldn't find symbols")
+            .values()
+            .filter(|symbol| symbol.kind == SymbolKind::Parameter)
+            .map(|symbol| symbol.r#type)
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -141,5 +152,14 @@ mod tests {
         assert_eq!(symbols.locals("first"), vec![(3, ValueType::I32)]);
         assert_eq!(symbols.locals("second"), vec![(1, ValueType::I32)]);
         assert_eq!(symbols.locals("third"), vec![]);
+    }
+
+    #[test]
+    fn should_get_parameters() {
+        let pair = Parser::parse(Rule::module, WAFER).unwrap().next().unwrap();
+        let symbols: Symbols = pair.into();
+
+        assert_eq!(symbols.parameters("first"), vec![ValueType::I32]);
+        assert_eq!(symbols.parameters("second"), vec![]);
     }
 }
