@@ -1,9 +1,10 @@
-use super::section::{CodeSection, ExportSection, FunctionSection, TypeSection};
+use super::section::{CodeSection, ExportSection, FunctionSection, ImportSection, TypeSection};
 use super::{Instruction, ValueType, WasmEncodable};
 
 #[derive(Default)]
 pub struct Module {
     r#type: TypeSection,
+    import: ImportSection,
     function: FunctionSection,
     export: ExportSection,
     code: CodeSection,
@@ -20,6 +21,7 @@ impl WasmEncodable for Module {
         result.extend(VERSION);
 
         result.extend(self.r#type.wasm_encode());
+        result.extend(self.import.wasm_encode());
         result.extend(self.function.wasm_encode());
         result.extend(self.export.wasm_encode());
         result.extend(self.code.wasm_encode());
@@ -29,13 +31,9 @@ impl WasmEncodable for Module {
 }
 
 impl Module {
-    pub fn add_import(
-        &mut self,
-        name: String,
-        parameters: Vec<ValueType>,
-        returns: Vec<ValueType>,
-    ) {
-        todo!();
+    pub fn add_import(&mut self, name: &str, parameters: Vec<ValueType>, returns: Vec<ValueType>) {
+        let r#type = self.r#type.add_function(parameters, returns);
+        self.import.add_function("waferImports", name, r#type);
     }
 
     pub fn add_function(

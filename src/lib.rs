@@ -11,7 +11,7 @@ pub fn compile(input: &str) -> Vec<u8> {
     let num_imports = wafer.imports.len();
 
     for import in wafer.imports {
-        module.add_import(import.name, import.parameters, vec![ValueType::I32]);
+        module.add_import(&import.name, import.parameters, vec![ValueType::I32]);
     }
 
     for function in wafer.functions {

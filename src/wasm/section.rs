@@ -7,6 +7,7 @@ mod r#type;
 pub use code::CodeSection;
 pub use export::ExportSection;
 pub use function::FunctionSection;
+pub use import::ImportSection;
 pub use r#type::TypeSection;
 
 use super::WasmEncodable;
