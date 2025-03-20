@@ -28,10 +28,15 @@ fn param_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)>
 fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)> {
     pair.into_inner()
         .flatten()
-        .filter(|pair| pair.as_rule() == Rule::let_statement)
-        .map(|pair| {
-            let pair = pair.into_inner().next().unwrap();
-            (pair.as_str().to_string(), SymbolKind::LocalVariable)
+        .filter_map(|pair| match pair.as_rule() {
+            Rule::let_statement => {
+                let pair = pair.into_inner().next().unwrap();
+                Some((pair.as_str().to_string(), SymbolKind::LocalVariable))
+            }
+            Rule::array_assignment_expression => {
+                Some(("$temp".to_string(), SymbolKind::LocalVariable))
+            }
+            _ => None,
         })
 }
 
@@ -176,6 +181,11 @@ mod tests {
         func third() {
             123
         }
+
+        func fourth() {
+            __mem[1] := 2;
+            0
+        }
     ";
 
     #[test]
@@ -187,6 +197,7 @@ mod tests {
         assert_eq!(symbols.local("first", "x"), (ValueType::I32, 1));
         assert_eq!(symbols.local("first", "y"), (ValueType::I32, 2));
         assert_eq!(symbols.local("second", "y"), (ValueType::I32, 0));
+        assert_eq!(symbols.local("fourth", "$temp"), (ValueType::I32, 0));
     }
 
     #[test]
@@ -197,6 +208,7 @@ mod tests {
         assert_eq!(symbols.locals("first"), vec![(2, ValueType::I32)]);
         assert_eq!(symbols.locals("second"), vec![(1, ValueType::I32)]);
         assert_eq!(symbols.locals("third"), vec![]);
+        assert_eq!(symbols.locals("fourth"), vec![(1, ValueType::I32)]);
     }
 
     #[test]
@@ -221,5 +233,6 @@ mod tests {
         assert_eq!(symbols.function("first"), 1);
         assert_eq!(symbols.function("second"), 2);
         assert_eq!(symbols.function("third"), 3);
+        assert_eq!(symbols.function("fourth"), 4);
     }
 }
