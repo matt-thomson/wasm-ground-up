@@ -109,6 +109,23 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                     }
                 }
             }
+            Rule::array_assignment_expression => {
+                let mut pairs = pair.into_inner();
+
+                let mut array = pairs.next().unwrap().into_inner();
+                let identifier = array.next().unwrap().as_str();
+                if identifier != "__mem" {
+                    todo!()
+                }
+
+                let index = array.next().unwrap();
+                inner(index, name, symbols, instructions);
+
+                let expression = pairs.next().unwrap();
+                inner(expression, name, symbols, instructions);
+
+                instructions.push(Instruction::StoreI32(0, 0));
+            }
             Rule::binary_expression => {
                 let mut pairs = pair.into_inner();
                 inner(pairs.next().unwrap(), name, symbols, instructions);
@@ -167,6 +184,19 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 "or" => Instruction::OrI32,
                 _ => unreachable!(),
             }),
+            Rule::array_index => {
+                let mut pairs = pair.into_inner();
+
+                let identifier = pairs.next().unwrap().as_str();
+                if identifier != "__mem" {
+                    todo!()
+                }
+
+                let index = pairs.next().unwrap();
+                inner(index, name, symbols, instructions);
+
+                instructions.push(Instruction::LoadI32(0, 0));
+            }
             Rule::identifier => {
                 let (r#type, index) = symbols.local(name, pair.as_str());
 
@@ -420,5 +450,24 @@ mod tests {
 
         assert_eq!(import.name, "add");
         assert_eq!(import.parameters, vec![ValueType::I32, ValueType::I32]);
+    }
+
+    #[test]
+    fn should_handle_array_operations() {
+        let wafer = Wafer::parse("func memory() { __mem[1] := 2; __mem[3] }");
+        let function = &wafer.functions[0];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::ConstI32(1),
+                Instruction::ConstI32(2),
+                Instruction::StoreI32(0, 0),
+                Instruction::Drop,
+                Instruction::ConstI32(3),
+                Instruction::LoadI32(0, 0),
+                Instruction::End
+            ]
+        );
     }
 }

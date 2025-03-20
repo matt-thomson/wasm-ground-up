@@ -12,6 +12,8 @@ pub enum Instruction {
     LocalGetI32(usize),
     LocalSetI32(usize),
     LocalTeeI32(usize),
+    LoadI32(usize, usize),
+    StoreI32(usize, usize),
     ConstI32(i32),
     EqualI32,
     NotEqualI32,
@@ -48,6 +50,12 @@ impl WasmEncodable for Instruction {
             Instruction::LocalGetI32(index) => [vec![0x20], index.wasm_encode()].concat(),
             Instruction::LocalSetI32(index) => [vec![0x21], index.wasm_encode()].concat(),
             Instruction::LocalTeeI32(index) => [vec![0x22], index.wasm_encode()].concat(),
+            Instruction::LoadI32(offset, align) => {
+                [vec![0x28], offset.wasm_encode(), align.wasm_encode()].concat()
+            }
+            Instruction::StoreI32(offset, align) => {
+                [vec![0x36], offset.wasm_encode(), align.wasm_encode()].concat()
+            }
             Instruction::ConstI32(value) => [vec![0x41], value.wasm_encode()].concat(),
             Instruction::EqualI32 => vec![0x46],
             Instruction::NotEqualI32 => vec![0x47],
