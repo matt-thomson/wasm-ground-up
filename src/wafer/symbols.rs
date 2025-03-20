@@ -27,6 +27,7 @@ fn param_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)>
 
 fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)> {
     pair.into_inner()
+        .flatten()
         .filter(|pair| pair.as_rule() == Rule::let_statement)
         .map(|pair| {
             let pair = pair.into_inner().next().unwrap();
@@ -158,8 +159,12 @@ mod tests {
         extern func import(a, b);
     
         func first(a) {
-            let x = 1;
-            let y = 2;
+            if 0 {
+                let x = 1;
+            }
+            while 0 {
+                let y = 2;
+            }
             a + 42
         }
 
