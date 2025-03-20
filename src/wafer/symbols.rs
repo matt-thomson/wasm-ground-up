@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
+use itertools::Itertools;
 use pest::iterators::Pair;
 
 use crate::wasm::ValueType;
 
 use super::Rule;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub enum SymbolKind {
     Parameter,
     LocalVariable,
@@ -38,6 +39,7 @@ fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)>
             }
             _ => None,
         })
+        .unique()
 }
 
 impl From<Pair<'_, Rule>> for Symbols {
@@ -184,6 +186,7 @@ mod tests {
 
         func fourth() {
             __mem[1] := 2;
+            __mem[3] := 4;
             0
         }
     ";

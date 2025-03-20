@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+itertools = "0.14.0"
 leb128 = "0.2.5"
 pest = "2.7.15"
 pest_derive = "2.7.15"
