@@ -1,4 +1,6 @@
-use super::section::{CodeSection, ExportSection, FunctionSection, ImportSection, TypeSection};
+use super::section::{
+    CodeSection, ExportSection, FunctionSection, ImportSection, MemorySection, TypeSection,
+};
 use super::{Instruction, ValueType, WasmEncodable};
 
 #[derive(Default)]
@@ -6,6 +8,7 @@ pub struct Module {
     r#type: TypeSection,
     import: ImportSection,
     function: FunctionSection,
+    memory: MemorySection,
     export: ExportSection,
     code: CodeSection,
 }
@@ -23,6 +26,7 @@ impl WasmEncodable for Module {
         result.extend(self.r#type.wasm_encode());
         result.extend(self.import.wasm_encode());
         result.extend(self.function.wasm_encode());
+        result.extend(self.memory.wasm_encode());
         result.extend(self.export.wasm_encode());
         result.extend(self.code.wasm_encode());
 

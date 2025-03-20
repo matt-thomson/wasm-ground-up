@@ -2,12 +2,14 @@ mod code;
 mod export;
 mod function;
 mod import;
+mod memory;
 mod r#type;
 
 pub use code::CodeSection;
 pub use export::ExportSection;
 pub use function::FunctionSection;
 pub use import::ImportSection;
+pub use memory::MemorySection;
 pub use r#type::TypeSection;
 
 use super::WasmEncodable;
