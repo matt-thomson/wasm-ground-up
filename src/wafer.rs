@@ -132,7 +132,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                     }
                 }
 
-                instructions.push(Instruction::StoreI32(0, 0));
+                instructions.push(Instruction::StoreI32(2, 0));
 
                 match r#type {
                     ValueType::I32 => {
@@ -209,7 +209,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let index = pairs.next().unwrap();
                 inner(index, name, symbols, instructions);
 
-                instructions.push(Instruction::LoadI32(0, 0));
+                instructions.push(Instruction::LoadI32(2, 0));
             }
             Rule::identifier => {
                 let (r#type, index) = symbols.local(name, pair.as_str());
@@ -477,11 +477,11 @@ mod tests {
                 Instruction::ConstI32(1),
                 Instruction::ConstI32(2),
                 Instruction::LocalTeeI32(0),
-                Instruction::StoreI32(0, 0),
+                Instruction::StoreI32(2, 0),
                 Instruction::LocalGetI32(0),
                 Instruction::Drop,
                 Instruction::ConstI32(3),
-                Instruction::LoadI32(0, 0),
+                Instruction::LoadI32(2, 0),
                 Instruction::End
             ]
         );
