@@ -33,7 +33,7 @@ mod tests {
     use std::fs::read_to_string;
 
     use rstest::rstest;
-    use wasmi::{Engine, Instance, Module, Store};
+    use wasmi::{Engine, Instance, Linker, Module, Store};
 
     use super::compile;
 
@@ -41,8 +41,13 @@ mod tests {
         let engine = Engine::default();
         let module = Module::new(&engine, wasm).expect("couldn't parse module");
         let mut store = Store::new(&engine, 0);
+        let linker = Linker::new(&engine);
 
-        let instance = Instance::new(&mut store, &module, &[]).expect("couldn't build instance");
+        let instance = linker
+            .instantiate(&mut store, &module)
+            .expect("couldn't instantiate")
+            .start(&mut store)
+            .expect("couldn't start");
 
         (store, instance)
     }
