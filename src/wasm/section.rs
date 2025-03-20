@@ -1,6 +1,7 @@
 mod code;
 mod export;
 mod function;
+mod import;
 mod r#type;
 
 pub use code::CodeSection;
