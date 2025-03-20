@@ -4,12 +4,14 @@ use super::Section;
 
 pub enum ExportDescription {
     Function(usize),
+    Memory(usize),
 }
 
 impl WasmEncodable for ExportDescription {
     fn wasm_encode(&self) -> Vec<u8> {
         match self {
-            ExportDescription::Function(index) => [vec![0], index.wasm_encode()].concat(),
+            ExportDescription::Function(index) => [vec![0x00], index.wasm_encode()].concat(),
+            ExportDescription::Memory(index) => [vec![0x02], index.wasm_encode()].concat(),
         }
     }
 }
@@ -42,11 +44,18 @@ impl Section for ExportSection {
 
 impl ExportSection {
     pub fn add_function(&mut self, name: &str, index: usize) {
+        self.add(name, ExportDescription::Function(index));
+    }
+
+    pub fn add_memory(&mut self, name: &str, index: usize) {
+        self.add(name, ExportDescription::Memory(index));
+    }
+
+    fn add(&mut self, name: &str, description: ExportDescription) {
         let export = Export {
             name: name.to_owned(),
-            description: ExportDescription::Function(index),
+            description,
         };
-
         self.exports.push(export);
     }
 }
@@ -58,12 +67,18 @@ mod tests {
     use super::ExportSection;
 
     #[test]
-    fn should_encode_export_section_with_one_export() {
+    fn should_encode_export_section() {
         let mut section = ExportSection::default();
         section.add_function("main", 123);
+        section.add_memory("mem", 101);
 
         let wasm = section.wasm_encode();
 
-        assert_eq!(wasm, vec![7, 8, 1, 4, 0x6d, 0x61, 0x69, 0x6e, 0, 123]);
+        assert_eq!(
+            wasm,
+            vec![
+                7, 14, 2, 4, 0x6d, 0x61, 0x69, 0x6e, 0, 123, 3, 0x6d, 0x65, 0x6d, 2, 101
+            ]
+        );
     }
 }

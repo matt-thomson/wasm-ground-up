@@ -58,7 +58,11 @@ impl Module {
         self.export.add_function(name, index);
     }
 
-    pub fn add_memory(&mut self, min: usize, max: Option<usize>) {
-        self.memory.add(min, max);
+    pub fn add_memory(&mut self, min: usize, max: Option<usize>) -> usize {
+        self.memory.add(min, max)
+    }
+
+    pub fn export_memory(&mut self, name: &str, index: usize) {
+        self.export.add_memory(name, index);
     }
 }

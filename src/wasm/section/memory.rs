@@ -34,7 +34,7 @@ impl Section for MemorySection {
 }
 
 impl MemorySection {
-    pub fn add(&mut self, min: usize, max: Option<usize>) {
+    pub fn add(&mut self, min: usize, max: Option<usize>) -> usize {
         let memory = if let Some(max) = max {
             Memory::MinimumAndMaximum(min, max)
         } else {
@@ -42,6 +42,7 @@ impl MemorySection {
         };
 
         self.memories.push(memory);
+        self.memories.len() - 1
     }
 }
 
