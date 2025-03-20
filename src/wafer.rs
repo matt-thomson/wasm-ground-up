@@ -124,7 +124,21 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let expression = pairs.next().unwrap();
                 inner(expression, name, symbols, instructions);
 
+                let (r#type, temp_index) = symbols.local(name, "$temp");
+
+                match r#type {
+                    ValueType::I32 => {
+                        instructions.push(Instruction::LocalTeeI32(temp_index));
+                    }
+                }
+
                 instructions.push(Instruction::StoreI32(0, 0));
+
+                match r#type {
+                    ValueType::I32 => {
+                        instructions.push(Instruction::LocalGetI32(temp_index));
+                    }
+                }
             }
             Rule::binary_expression => {
                 let mut pairs = pair.into_inner();
@@ -462,7 +476,9 @@ mod tests {
             vec![
                 Instruction::ConstI32(1),
                 Instruction::ConstI32(2),
+                Instruction::LocalTeeI32(0),
                 Instruction::StoreI32(0, 0),
+                Instruction::LocalGetI32(0),
                 Instruction::Drop,
                 Instruction::ConstI32(3),
                 Instruction::LoadI32(0, 0),
