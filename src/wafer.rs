@@ -93,7 +93,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
 
                 instructions.push(Instruction::Drop);
             }
-            Rule::assignment_expression => {
+            Rule::variable_assignment_expression => {
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();

@@ -13,7 +13,9 @@ identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 args = { "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
-assignment_expression = { identifier ~ ":=" ~ expression }
+variable_assignment_expression = { identifier ~ ":=" ~ expression }
+array_assignment_expression = { identifier ~ "[" ~ expression ~ "]" ~ ":=" ~ expression }
+assignment_expression = _{ variable_assignment_expression | array_assignment_expression }
 binary_expression = { primary_expression ~ (binary_operation ~ primary_expression)* }
 call_expression = { identifier ~ args }
 if_expression = { "if" ~ expression ~ block_expression ~ "else" ~ (block_expression | if_expression) }
