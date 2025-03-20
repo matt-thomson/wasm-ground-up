@@ -25,6 +25,8 @@ pub fn compile(input: &str) -> Vec<u8> {
         module.export_function(&function.name, num_imports + index);
     }
 
+    module.add_memory(1, None);
+
     module.wasm_encode()
 }
 
