@@ -1,0 +1,27 @@
+func write() {
+	let offset = 0;
+	
+	while offset < 256 {
+		__mem[offset] := 1;
+		offset := offset + 4;
+	}
+	
+	0
+}
+
+func sum() {
+	let offset = 0;
+	let sum = 0;
+
+	while offset < 256 {
+		sum := sum + __mem[offset];
+		offset := offset + 4;
+	}
+	
+	sum
+}
+
+func main() {
+	write();
+	sum()
+}
