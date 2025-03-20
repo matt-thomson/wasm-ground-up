@@ -1,0 +1,5 @@
+extern func add(a, b);
+
+func main() {
+	add(123, 456)
+}

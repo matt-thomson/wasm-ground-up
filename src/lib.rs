@@ -41,7 +41,11 @@ mod tests {
         let engine = Engine::default();
         let module = Module::new(&engine, wasm).expect("couldn't parse module");
         let mut store = Store::new(&engine, 0);
-        let linker = Linker::new(&engine);
+        let mut linker = Linker::new(&engine);
+
+        linker
+            .func_wrap("waferImports", "add", |a: i32, b: i32| a + b)
+            .expect("couldn't wrap add function");
 
         let instance = linker
             .instantiate(&mut store, &module)
@@ -83,6 +87,7 @@ mod tests {
     #[case("fib_recursive", 89)]
     #[case("while", 128)]
     #[case("fib_loop", 89)]
+    #[case("extern", 579)]
     fn should_compile_fixtures_correctly(#[case] fixture_name: &str, #[case] expected: i32) {
         let input = read_to_string(format!("fixtures/{fixture_name}.wafer")).unwrap();
         let wasm = compile(&input);
