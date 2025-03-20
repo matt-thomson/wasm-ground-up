@@ -26,7 +26,15 @@
       data[offset + 3] = a;
     }
 
+    const {instance} = await WebAssembly.instantiateStreaming(
+      fetch("draw.wasm"),
+      {waferImports: {setPixel}}
+    );
+
     requestAnimationFrame(function render(timestamp) {
+      const t = Math.floor((Math.sin(timestamp / 2000) + 1) / 2 * 255);
+      instance.exports.draw(canvas.width, canvas.height, t);
+
       ctx.putImageData(backgroundImgData, 0, 0);
 
       ctx.fillStyle = "white";
