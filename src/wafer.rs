@@ -9,7 +9,7 @@ use symbols::Symbols;
 use crate::wasm::{Instruction, ValueType};
 
 #[derive(pest_derive::Parser)]
-#[grammar = "wafer.pest"]
+#[grammar = "src/wafer.pest"]
 struct Parser;
 
 pub struct Import {
