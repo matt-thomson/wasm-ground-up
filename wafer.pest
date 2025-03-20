@@ -10,11 +10,12 @@ binary_operation = { arithmetic_operation | comparison_operation | logical_opera
 
 number = @{ ASCII_DIGIT+ }
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+array_index = { identifier ~ "[" ~ expression ~ "]" }
 
 args = { "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
 variable_assignment_expression = { identifier ~ ":=" ~ expression }
-array_assignment_expression = { identifier ~ "[" ~ expression ~ "]" ~ ":=" ~ expression }
+array_assignment_expression = { array_index ~ ":=" ~ expression }
 assignment_expression = _{ variable_assignment_expression | array_assignment_expression }
 binary_expression = { primary_expression ~ (binary_operation ~ primary_expression)* }
 call_expression = { identifier ~ args }
@@ -24,6 +25,7 @@ primary_expression = _{
     number |
     if_expression |
     call_expression |
+    array_index |
     identifier
 }
 expression = _{ assignment_expression | binary_expression }
