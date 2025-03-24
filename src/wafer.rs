@@ -29,6 +29,7 @@ pub struct Function {
 pub struct Wafer {
     pub imports: Vec<Import>,
     pub functions: Vec<Function>,
+    pub data: Vec<u8>,
 }
 
 struct InstructionCollector<'a> {
@@ -335,7 +336,13 @@ impl Wafer {
             }
         }
 
-        Self { imports, functions }
+        let data = strings.into_bytes();
+
+        Self {
+            imports,
+            functions,
+            data,
+        }
     }
 }
 
