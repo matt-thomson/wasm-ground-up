@@ -114,30 +114,42 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
 
                 let mut array = pairs.next().unwrap().into_inner();
                 let identifier = array.next().unwrap().as_str();
-                if identifier != "__mem" {
-                    todo!()
-                }
-
                 let index = array.next().unwrap();
-                inner(index, name, symbols, instructions);
-
                 let expression = pairs.next().unwrap();
-                inner(expression, name, symbols, instructions);
 
-                let (r#type, temp_index) = symbols.local(name, "$temp");
+                if identifier == "__mem" {
+                    inner(index, name, symbols, instructions);
+                    inner(expression, name, symbols, instructions);
 
-                match r#type {
-                    ValueType::I32 => {
-                        instructions.push(Instruction::LocalTeeI32(temp_index));
+                    let (r#type, temp_index) = symbols.local(name, "$temp");
+
+                    match r#type {
+                        ValueType::I32 => {
+                            instructions.push(Instruction::LocalTeeI32(temp_index));
+                        }
                     }
-                }
 
-                instructions.push(Instruction::StoreI32(2, 0));
+                    instructions.push(Instruction::StoreI32(2, 0));
 
-                match r#type {
-                    ValueType::I32 => {
-                        instructions.push(Instruction::LocalGetI32(temp_index));
+                    match r#type {
+                        ValueType::I32 => {
+                            instructions.push(Instruction::LocalGetI32(temp_index));
+                        }
                     }
+                } else {
+                    let (r#type, ident_index) = symbols.local(name, identifier);
+
+                    match r#type {
+                        ValueType::I32 => {
+                            instructions.push(Instruction::LocalGetI32(ident_index));
+                        }
+                    }
+
+                    inner(index, name, symbols, instructions);
+                    inner(expression, name, symbols, instructions);
+
+                    let function_index = symbols.function("__writeInt32Array");
+                    instructions.push(Instruction::Call(function_index));
                 }
             }
             Rule::binary_expression => {
@@ -467,7 +479,7 @@ mod tests {
     }
 
     #[test]
-    fn should_handle_array_operations() {
+    fn should_handle_memory_operations() {
         let wafer = Wafer::parse("func memory() { __mem[1] := 2; __mem[3] }");
         let function = &wafer.functions[0];
 
@@ -485,5 +497,37 @@ mod tests {
                 Instruction::End
             ]
         );
+    }
+
+    #[test]
+    fn should_handle_array_operations() {
+        let wafer = Wafer::parse(
+            r"
+                func __writeInt32Array() {
+                    0
+                }
+
+                func array() {
+                    let x = 0;
+                    x[1] := 2;
+                    0
+                }",
+        );
+        let function = &wafer.functions[1];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::ConstI32(0),
+                Instruction::LocalSetI32(0),
+                Instruction::LocalGetI32(0),
+                Instruction::ConstI32(1),
+                Instruction::ConstI32(2),
+                Instruction::Call(0),
+                Instruction::Drop,
+                Instruction::ConstI32(0),
+                Instruction::End
+            ]
+        )
     }
 }
