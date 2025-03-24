@@ -100,6 +100,7 @@ mod tests {
     #[case("extern", 579)]
     #[case("memory", 64)]
     #[case("array", 64)]
+    #[case("strings", 21840)]
     fn should_compile_fixtures_correctly(#[case] fixture_name: &str, #[case] expected: i32) {
         let input = read_to_string(format!("fixtures/{fixture_name}.wafer")).unwrap();
         let wasm = compile(&input);

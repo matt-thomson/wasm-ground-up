@@ -1,0 +1,7 @@
+func main() {
+	let a = "hello";
+	let b = newInt32Array(10);
+	b[0] := 42;
+
+	__mem[0] * a[0] * b[0]
+}
