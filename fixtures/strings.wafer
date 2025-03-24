@@ -1,4 +1,4 @@
-func main() {
+public func main() {
 	let a = "hello";
 	let b = newInt32Array(10);
 	b[0] := 42;

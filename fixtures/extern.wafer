@@ -1,5 +1,5 @@
 extern func add(a, b);
 
-func main() {
+public func main() {
 	add(123, 456)
 }

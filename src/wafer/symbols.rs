@@ -42,6 +42,30 @@ fn local_symbols(pair: Pair<Rule>) -> impl Iterator<Item = (String, SymbolKind)>
         .unique()
 }
 
+fn function_symbols(pair: Pair<'_, Rule>) -> (String, HashMap<String, Symbol>) {
+    let mut pairs = pair.into_inner();
+    let name = pairs.next().unwrap();
+    let params = pairs.next().unwrap();
+    let body = pairs.next().unwrap();
+
+    let symbols = param_symbols(params)
+        .chain(local_symbols(body))
+        .enumerate()
+        .map(|(index, (name, kind))| {
+            (
+                name,
+                Symbol {
+                    index,
+                    r#type: ValueType::I32,
+                    kind,
+                },
+            )
+        })
+        .collect();
+
+    (name.as_str().to_string(), symbols)
+}
+
 impl From<Pair<'_, Rule>> for Symbols {
     fn from(pair: Pair<Rule>) -> Self {
         let mut imports = vec![];
@@ -50,27 +74,10 @@ impl From<Pair<'_, Rule>> for Symbols {
         for pair in pair.into_inner() {
             match pair.as_rule() {
                 Rule::function => {
-                    let mut pairs = pair.into_inner();
-                    let name = pairs.next().unwrap();
-                    let params = pairs.next().unwrap();
-                    let body = pairs.next().unwrap();
-
-                    let symbols = param_symbols(params)
-                        .chain(local_symbols(body))
-                        .enumerate()
-                        .map(|(index, (name, kind))| {
-                            (
-                                name,
-                                Symbol {
-                                    index,
-                                    r#type: ValueType::I32,
-                                    kind,
-                                },
-                            )
-                        })
-                        .collect();
-
-                    functions.push((name.as_str().to_string(), symbols));
+                    functions.push(function_symbols(pair));
+                }
+                Rule::public_function => {
+                    functions.push(function_symbols(pair.into_inner().next().unwrap()))
                 }
                 Rule::external_function => {
                     let mut pairs = pair.into_inner();

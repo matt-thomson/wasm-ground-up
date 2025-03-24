@@ -21,6 +21,7 @@ pub struct Import {
 
 pub struct Function {
     pub name: String,
+    pub public: bool,
     pub parameters: Vec<ValueType>,
     pub locals: Vec<(usize, ValueType)>,
     pub instructions: Vec<Instruction>,
@@ -299,6 +300,29 @@ impl<'a> InstructionCollector<'a> {
     }
 }
 
+fn parse_function(
+    pair: Pair<Rule>,
+    public: bool,
+    symbols: &Symbols,
+    strings: &Strings,
+) -> Function {
+    let mut pairs = pair.into_inner();
+    let name = pairs.next().unwrap().as_str();
+    let _params = pairs.next().unwrap();
+    let body = pairs.next().unwrap();
+
+    let mut collector = InstructionCollector::new(name, &symbols, &strings);
+    collector.collect(body);
+
+    Function {
+        name: name.to_string(),
+        public,
+        parameters: symbols.parameters(name),
+        locals: symbols.locals(name),
+        instructions: collector.instructions,
+    }
+}
+
 impl Wafer {
     pub fn parse(input: &str) -> Self {
         let parsed = Parser::parse(Rule::module, input)
@@ -322,21 +346,16 @@ impl Wafer {
                         parameters: symbols.parameters(name),
                     });
                 }
+                Rule::public_function => {
+                    functions.push(parse_function(
+                        pair.into_inner().next().unwrap(),
+                        true,
+                        &symbols,
+                        &strings,
+                    ));
+                }
                 Rule::function => {
-                    let mut pairs = pair.into_inner();
-                    let name = pairs.next().unwrap().as_str();
-                    let _params = pairs.next().unwrap();
-                    let body = pairs.next().unwrap();
-
-                    let mut collector = InstructionCollector::new(name, &symbols, &strings);
-                    collector.collect(body);
-
-                    functions.push(Function {
-                        name: name.to_string(),
-                        parameters: symbols.parameters(name),
-                        locals: symbols.locals(name),
-                        instructions: collector.instructions,
-                    });
+                    functions.push(parse_function(pair, false, &symbols, &strings));
                 }
                 Rule::EOI => (),
                 _ => unreachable!(),
@@ -625,5 +644,18 @@ mod tests {
                 Instruction::End
             ]
         );
+    }
+
+    #[test]
+    fn should_handle_public_functions() {
+        let wafer = Wafer::parse(
+            r"
+                func a() { 0 }
+                public func b() { 0 }
+            ",
+        );
+
+        assert_eq!(wafer.functions[0].public, false);
+        assert_eq!(wafer.functions[1].public, true);
     }
 }

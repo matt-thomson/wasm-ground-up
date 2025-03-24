@@ -1,4 +1,4 @@
-func main() {
+public func main() {
 	fib(10)
 }
 

@@ -1,7 +1,7 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 COMMENT = _{ ("//" ~ (!"\n" ~ ANY)*) | ("/*" ~ (!"*/" ~ ANY)* ~ "*/") }
 
-module = { SOI ~ (function | external_function)* ~ EOI }
+module = { SOI ~ (public_function | function | external_function)* ~ EOI }
 
 arithmetic_operation = _{ "+" | "-" | "*" | "/" }
 comparison_operation = _{ "==" | "!=" | "<=" | "<" | ">=" | ">" }
@@ -42,6 +42,7 @@ statement = _{ let_statement | if_statement | while_statement | expression_state
 
 params = { "(" ~ (identifier ~ ("," ~ identifier)*)? ~ ")" }
 block_expression = { "{" ~ (statement)* ~ expression ~ "}" }
-function = { "func" ~ identifier ~ params ~ block_expression }
 
+function = { "func" ~ identifier ~ params ~ block_expression }
+public_function = { "public" ~ function }
 external_function = { "extern" ~ "func" ~ identifier ~ params ~ ";" }

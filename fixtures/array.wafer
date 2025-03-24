@@ -21,7 +21,7 @@ func sum(a) {
 	sum
 }
 
-func main() {
+public func main() {
 	let a = newInt32Array(256);
 
 	write(a);

@@ -1,6 +1,6 @@
 extern func setPixel(x, y, r, g, b, a);
 
-func draw(width, height, t) {
+public func draw(width, height, t) {
 	let y = 0;
 	
 	while y < height {

@@ -21,7 +21,7 @@ func sum() {
 	sum
 }
 
-func main() {
+public func main() {
 	write();
 	sum()
 }
