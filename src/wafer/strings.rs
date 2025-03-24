@@ -29,8 +29,8 @@ impl From<Pair<'_, Rule>> for Strings {
 }
 
 impl Strings {
-    pub fn offset(&self, string: &str) -> usize {
-        self.offsets[string]
+    pub fn offset(&self, string: &str) -> i32 {
+        self.offsets[string] as i32
     }
 
     pub fn into_bytes(self) -> Vec<u8> {

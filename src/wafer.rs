@@ -34,14 +34,16 @@ pub struct Wafer {
 struct InstructionCollector<'a> {
     name: &'a str,
     symbols: &'a Symbols,
+    strings: &'a Strings,
     instructions: Vec<Instruction>,
 }
 
 impl<'a> InstructionCollector<'a> {
-    fn new(name: &'a str, symbols: &'a Symbols) -> Self {
+    fn new(name: &'a str, symbols: &'a Symbols, strings: &'a Strings) -> Self {
         Self {
             name,
             symbols,
+            strings,
             instructions: vec![],
         }
     }
@@ -274,13 +276,9 @@ impl<'a> InstructionCollector<'a> {
             }
             Rule::string_literal => {
                 let value = pair.as_str();
-                let chars: Vec<char> = value.chars().collect();
+                let offset = self.strings.offset(value);
 
-                self.instructions
-                    .push(Instruction::ConstI32(chars.len() as i32));
-
-                let function_index = self.symbols.function("newInt32Array");
-                self.instructions.push(Instruction::Call(function_index));
+                self.instructions.push(Instruction::ConstI32(offset));
             }
             Rule::EOI => (),
             _ => unreachable!("{:#?}", pair),
@@ -322,7 +320,7 @@ impl Wafer {
                     let _params = pairs.next().unwrap();
                     let body = pairs.next().unwrap();
 
-                    let mut collector = InstructionCollector::new(name, &symbols);
+                    let mut collector = InstructionCollector::new(name, &symbols, &strings);
                     collector.collect(body);
 
                     functions.push(Function {
@@ -595,6 +593,7 @@ mod tests {
                 
             func string() {
                 let a = "hello";
+                let b = "world";
                 0
             }
         "#,
@@ -604,9 +603,10 @@ mod tests {
         assert_eq!(
             function.instructions,
             vec![
-                Instruction::ConstI32(5),
-                Instruction::Call(0),
+                Instruction::ConstI32(0),
                 Instruction::LocalSetI32(0),
+                Instruction::ConstI32(5),
+                Instruction::LocalSetI32(1),
                 Instruction::ConstI32(0),
                 Instruction::End
             ]
