@@ -58,7 +58,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
 
                 let condition = pairs.next().unwrap();
                 inner(condition, name, symbols, instructions);
-                instructions.push(Instruction::If(Some(ValueType::I32)));
+                instructions.push(Instruction::If(None));
 
                 let then_block = pairs.next().unwrap();
                 inner(then_block, name, symbols, instructions);
@@ -441,12 +441,12 @@ mod tests {
             function.instructions,
             vec![
                 Instruction::ConstI32(0),
-                Instruction::If(Some(ValueType::I32)),
+                Instruction::If(None),
                 Instruction::ConstI32(1),
                 Instruction::Drop,
                 Instruction::End,
                 Instruction::ConstI32(2),
-                Instruction::If(Some(ValueType::I32)),
+                Instruction::If(None),
                 Instruction::ConstI32(3),
                 Instruction::Drop,
                 Instruction::Else,

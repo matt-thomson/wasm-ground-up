@@ -88,7 +88,7 @@ mod tests {
 
     #[rstest]
     #[case("add", 579)]
-    #[case("if", 4)]
+    #[case("if", 36)]
     #[case("binary_ops", 22937)]
     #[case("fib_recursive", 89)]
     #[case("while", 128)]

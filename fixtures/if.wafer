@@ -2,5 +2,10 @@ func main() {
 	let a = if 1 { 1 } else { 2 };
 	let b = if 0 { 3 } else { 4 };
 
-	a * b
+	let c = 5;
+
+	if 0 { c := c + 2; }
+	if 1 { c := c + 4; }
+
+	a * b * c
 }
