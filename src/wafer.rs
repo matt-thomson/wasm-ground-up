@@ -619,7 +619,7 @@ mod tests {
             vec![
                 Instruction::ConstI32(0),
                 Instruction::LocalSetI32(0),
-                Instruction::ConstI32(5),
+                Instruction::ConstI32(24),
                 Instruction::LocalSetI32(1),
                 Instruction::ConstI32(0),
                 Instruction::End

@@ -21,7 +21,9 @@ impl From<Pair<'_, Rule>> for Strings {
         {
             let value = pair.as_str();
             offsets.insert(value.to_owned(), data.len());
-            data.extend(value.as_bytes());
+
+            data.extend((value.len() as i32).to_le_bytes());
+            data.extend(value.chars().flat_map(|c| (c as i32).to_le_bytes()));
         }
 
         Self { offsets, data }
@@ -63,13 +65,19 @@ mod tests {
         let strings = Strings::from(pair);
 
         assert_eq!(strings.offset("foo"), 0);
-        assert_eq!(strings.offset("bar"), 3);
+        assert_eq!(strings.offset("bar"), 16);
+        assert_eq!(strings.len(), 32);
 
-        assert_eq!(strings.len(), 6);
+        let bytes = strings.into_bytes();
 
-        assert_eq!(
-            strings.into_bytes(),
-            vec![0x66, 0x6f, 0x6f, 0x62, 0x61, 0x72]
-        );
+        assert_eq!(bytes[0], 3);
+        assert_eq!(bytes[4], 0x66);
+        assert_eq!(bytes[8], 0x6f);
+        assert_eq!(bytes[12], 0x6f);
+
+        assert_eq!(bytes[16], 3);
+        assert_eq!(bytes[20], 0x62);
+        assert_eq!(bytes[24], 0x61);
+        assert_eq!(bytes[28], 0x72);
     }
 }
