@@ -1,0 +1,29 @@
+func write(a) {
+	let offset = 0;
+	
+	while offset < 256 {
+		a[offset] := 1;
+		offset := offset + 4;
+	}
+	
+	0
+}
+
+func sum(a) {
+	let offset = 0;
+	let sum = 0;
+
+	while offset < 256 {
+		sum := sum + a[offset];
+		offset := offset + 4;
+	}
+	
+	sum
+}
+
+func main() {
+	let a = newInt32Array(256);
+
+	write(a);
+	sum(a)
+}
