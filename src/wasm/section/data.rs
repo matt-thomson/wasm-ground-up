@@ -12,7 +12,8 @@ impl WasmEncodable for Data {
     fn wasm_encode(&self) -> Vec<u8> {
         [
             self.memory.wasm_encode(),
-            vec![Instruction::ConstI32(self.offset as i32), Instruction::End].wasm_encode(),
+            Instruction::ConstI32(self.offset as i32).wasm_encode(),
+            Instruction::End.wasm_encode(),
             self.data.wasm_encode(),
         ]
         .concat()
@@ -53,11 +54,11 @@ mod tests {
     #[test]
     fn should_encode_data_section_with_one_segment() {
         let mut section = DataSection::default();
-        section.add_segment(0, 99, vec![0xde, 0xad, 0xbe, 0xef]);
+        section.add_segment(0, 12, vec![0xde, 0xad, 0xbe, 0xef]);
 
         assert_eq!(
             section.wasm_encode(),
-            vec![11, 12, 1, 0, 2, 65, 227, 0, 11, 4, 0xde, 0xad, 0xbe, 0xef]
+            vec![11, 10, 1, 0, 65, 12, 11, 4, 0xde, 0xad, 0xbe, 0xef]
         );
     }
 }
