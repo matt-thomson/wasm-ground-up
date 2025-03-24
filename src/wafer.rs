@@ -253,6 +253,15 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let number = i32::from_str(pair.as_str()).expect("failed to parse number");
                 instructions.push(Instruction::ConstI32(number));
             }
+            Rule::string_literal => {
+                let value = pair.as_str();
+                let chars: Vec<char> = value.chars().skip(1).take(value.len() - 2).collect();
+
+                instructions.push(Instruction::ConstI32(chars.len() as i32));
+
+                let function_index = symbols.function("newInt32Array");
+                instructions.push(Instruction::Call(function_index));
+            }
             Rule::EOI => (),
             _ => unreachable!("{:#?}", pair),
         }
@@ -549,6 +558,34 @@ mod tests {
                 Instruction::LocalGetI32(0),
                 Instruction::ConstI32(3),
                 Instruction::Call(1),
+                Instruction::End
+            ]
+        );
+    }
+
+    #[test]
+    fn should_handle_strings() {
+        let wafer = Wafer::parse(
+            r#"
+            func newInt32Array() {
+                0
+            }
+                
+            func string() {
+                let a = "hello";
+                0
+            }
+        "#,
+        );
+        let function = &wafer.functions[1];
+
+        assert_eq!(
+            function.instructions,
+            vec![
+                Instruction::ConstI32(5),
+                Instruction::Call(0),
+                Instruction::LocalSetI32(0),
+                Instruction::ConstI32(0),
                 Instruction::End
             ]
         );
