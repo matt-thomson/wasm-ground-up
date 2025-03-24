@@ -268,7 +268,7 @@ impl<'a> InstructionCollector<'a> {
 
                 if identifier == "__heap_base" {
                     self.instructions
-                        .push(Instruction::ConstI32(self.strings.len()))
+                        .push(Instruction::ConstI32(self.strings.len()));
                 } else {
                     let (r#type, index) = self.symbols.local(self.name, identifier);
 
@@ -311,7 +311,7 @@ fn parse_function(
     let _params = pairs.next().unwrap();
     let body = pairs.next().unwrap();
 
-    let mut collector = InstructionCollector::new(name, &symbols, &strings);
+    let mut collector = InstructionCollector::new(name, symbols, strings);
     collector.collect(body);
 
     Function {
@@ -655,7 +655,7 @@ mod tests {
             ",
         );
 
-        assert_eq!(wafer.functions[0].public, false);
-        assert_eq!(wafer.functions[1].public, true);
+        assert!(!wafer.functions[0].public);
+        assert!(wafer.functions[1].public);
     }
 }

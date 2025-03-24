@@ -77,7 +77,7 @@ impl From<Pair<'_, Rule>> for Symbols {
                     functions.push(function_symbols(pair));
                 }
                 Rule::public_function => {
-                    functions.push(function_symbols(pair.into_inner().next().unwrap()))
+                    functions.push(function_symbols(pair.into_inner().next().unwrap()));
                 }
                 Rule::external_function => {
                     let mut pairs = pair.into_inner();
