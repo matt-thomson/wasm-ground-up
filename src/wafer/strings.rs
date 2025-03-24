@@ -33,6 +33,10 @@ impl Strings {
         self.offsets[string] as i32
     }
 
+    pub fn len(&self) -> i32 {
+        self.data.len() as i32
+    }
+
     pub fn into_bytes(self) -> Vec<u8> {
         self.data
     }
@@ -60,6 +64,8 @@ mod tests {
 
         assert_eq!(strings.offset("foo"), 0);
         assert_eq!(strings.offset("bar"), 3);
+
+        assert_eq!(strings.len(), 6);
 
         assert_eq!(
             strings.into_bytes(),

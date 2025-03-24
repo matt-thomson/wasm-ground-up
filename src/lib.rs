@@ -31,7 +31,9 @@ pub fn compile(input: &str) -> Vec<u8> {
     let index = module.add_memory(1, None);
     module.export_memory("$waferMemory", index);
 
+    let heap_base = wafer.data.len();
     module.add_data_segment(index, 0, wafer.data);
+    module.add_data_segment(index, heap_base, ((heap_base + 4) as i32).wasm_encode());
 
     module.wasm_encode()
 }

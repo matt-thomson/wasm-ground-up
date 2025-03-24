@@ -263,11 +263,18 @@ impl<'a> InstructionCollector<'a> {
                 }
             }
             Rule::identifier => {
-                let (r#type, index) = self.symbols.local(self.name, pair.as_str());
+                let identifier = pair.as_str();
 
-                match r#type {
-                    ValueType::I32 => {
-                        self.instructions.push(Instruction::LocalGetI32(index));
+                if identifier == "__heap_base" {
+                    self.instructions
+                        .push(Instruction::ConstI32(self.strings.len()))
+                } else {
+                    let (r#type, index) = self.symbols.local(self.name, identifier);
+
+                    match r#type {
+                        ValueType::I32 => {
+                            self.instructions.push(Instruction::LocalGetI32(index));
+                        }
                     }
                 }
             }
