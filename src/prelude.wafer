@@ -1,3 +1,5 @@
+extern func __consoleLog(str);
+
 func newInt32Array(len) {
 	let freeOffset = __mem[__heap_base];
 	__mem[__heap_base] := freeOffset + (len * 4) + 4;
@@ -20,4 +22,8 @@ func __writeInt32Array(arr, idx, val) {
 	}
 
 	__mem[arr + 4 + (idx * 4)] := val
+}
+
+func print(str) {
+	__consoleLog(str)
 }

@@ -57,6 +57,10 @@ mod tests {
             .func_wrap("waferImports", "add", |a: i32, b: i32| a + b)
             .expect("couldn't wrap add function");
 
+        linker
+            .func_wrap("waferImports", "__consoleLog", |_: i32| 0)
+            .expect("couldn't wrap __consoleLog function");
+
         let instance = linker
             .instantiate(&mut store, &module)
             .expect("couldn't instantiate")
