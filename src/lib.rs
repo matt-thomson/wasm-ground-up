@@ -108,4 +108,18 @@ mod tests {
         let result = func.call(&mut store, ()).expect("couldn't call function");
         assert_eq!(result, expected);
     }
+
+    #[test]
+    fn should_panic_on_out_of_bounds() {
+        let input = read_to_string("fixtures/bounds.wafer").unwrap();
+        let wasm = compile(&input);
+        let (mut store, instance) = create_wasmi_instance(&wasm);
+
+        let func = instance
+            .get_typed_func::<(), i32>(&mut store, "main")
+            .expect("couldn't find function");
+
+        let result = func.call(&mut store, ());
+        assert!(result.is_err());
+    }
 }

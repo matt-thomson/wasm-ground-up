@@ -167,15 +167,20 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let index = symbols.function(identifier);
 
-                let args = pairs.next().unwrap();
+                if identifier == "__trap" {
+                    instructions.push(Instruction::Unreachable);
+                } else {
+                    let index = symbols.function(identifier);
 
-                for expression in args.into_inner() {
-                    inner(expression, name, symbols, instructions);
+                    let args = pairs.next().unwrap();
+
+                    for expression in args.into_inner() {
+                        inner(expression, name, symbols, instructions);
+                    }
+
+                    instructions.push(Instruction::Call(index));
                 }
-
-                instructions.push(Instruction::Call(index));
             }
             Rule::if_expression => {
                 let mut pairs = pair.into_inner();

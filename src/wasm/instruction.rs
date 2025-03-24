@@ -2,6 +2,7 @@ use super::{ValueType, WasmEncodable};
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
+    Unreachable,
     Loop(Option<ValueType>),
     If(Option<ValueType>),
     Else,
@@ -32,6 +33,7 @@ pub enum Instruction {
 impl WasmEncodable for Instruction {
     fn wasm_encode(&self) -> Vec<u8> {
         match self {
+            Instruction::Unreachable => vec![0x00],
             Instruction::Loop(r#type) => [
                 vec![0x03],
                 r#type.map(|t| t.wasm_encode()).unwrap_or(vec![0x40]),

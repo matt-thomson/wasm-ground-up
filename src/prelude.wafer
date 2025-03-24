@@ -7,9 +7,16 @@ func newInt32Array(len) {
 }
 
 func __readInt32Array(arr, idx) {
+	if idx < 0 or idx >= __mem[arr] {
+		__trap();
+	}
 	__mem[arr + 4 + (idx * 4)]
 }
 
 func __writeInt32Array(arr, idx, val) {
+	if idx < 0 or idx >= __mem[arr] {
+		__trap();
+	}
+
 	__mem[arr + 4 + (idx * 4)] := val
 }
