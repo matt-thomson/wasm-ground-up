@@ -43,7 +43,7 @@ mod tests {
     use std::fs::read_to_string;
 
     use rstest::rstest;
-    use wasmi::{Engine, Instance, Linker, Module, Store};
+    use wasmtime::{Engine, Instance, Linker, Module, Store};
 
     use super::compile;
 
@@ -63,9 +63,7 @@ mod tests {
 
         let instance = linker
             .instantiate(&mut store, &module)
-            .expect("couldn't instantiate")
-            .start(&mut store)
-            .expect("couldn't start");
+            .expect("couldn't instantiate");
 
         (store, instance)
     }
