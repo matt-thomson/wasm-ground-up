@@ -214,14 +214,26 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                if identifier != "__mem" {
-                    todo!()
-                }
-
                 let index = pairs.next().unwrap();
-                inner(index, name, symbols, instructions);
 
-                instructions.push(Instruction::LoadI32(2, 0));
+                if identifier == "__mem" {
+                    inner(index, name, symbols, instructions);
+
+                    instructions.push(Instruction::LoadI32(2, 0));
+                } else {
+                    let (r#type, ident_index) = symbols.local(name, identifier);
+
+                    match r#type {
+                        ValueType::I32 => {
+                            instructions.push(Instruction::LocalGetI32(ident_index));
+                        }
+                    }
+
+                    inner(index, name, symbols, instructions);
+
+                    let function_index = symbols.function("__readInt32Array");
+                    instructions.push(Instruction::Call(function_index));
+                }
             }
             Rule::identifier => {
                 let (r#type, index) = symbols.local(name, pair.as_str());
@@ -507,13 +519,17 @@ mod tests {
                     0
                 }
 
+                func __readInt32Array() {
+                    0
+                }
+
                 func array() {
                     let x = 0;
                     x[1] := 2;
-                    0
+                    x[3]
                 }",
         );
-        let function = &wafer.functions[1];
+        let function = &wafer.functions[2];
 
         assert_eq!(
             function.instructions,
@@ -525,9 +541,11 @@ mod tests {
                 Instruction::ConstI32(2),
                 Instruction::Call(0),
                 Instruction::Drop,
-                Instruction::ConstI32(0),
+                Instruction::LocalGetI32(0),
+                Instruction::ConstI32(3),
+                Instruction::Call(1),
                 Instruction::End
             ]
-        )
+        );
     }
 }
