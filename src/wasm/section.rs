@@ -1,4 +1,5 @@
 mod code;
+mod data;
 mod export;
 mod function;
 mod import;
@@ -6,6 +7,7 @@ mod memory;
 mod r#type;
 
 pub use code::CodeSection;
+pub use data::DataSection;
 pub use export::ExportSection;
 pub use function::FunctionSection;
 pub use import::ImportSection;

@@ -1,5 +1,6 @@
 use super::section::{
-    CodeSection, ExportSection, FunctionSection, ImportSection, MemorySection, TypeSection,
+    CodeSection, DataSection, ExportSection, FunctionSection, ImportSection, MemorySection,
+    TypeSection,
 };
 use super::{Instruction, ValueType, WasmEncodable};
 
@@ -11,6 +12,7 @@ pub struct Module {
     memory: MemorySection,
     export: ExportSection,
     code: CodeSection,
+    data: DataSection,
 }
 
 const MAGIC: &[u8] = "\0asm".as_bytes();
@@ -29,6 +31,7 @@ impl WasmEncodable for Module {
         result.extend(self.memory.wasm_encode());
         result.extend(self.export.wasm_encode());
         result.extend(self.code.wasm_encode());
+        result.extend(self.data.wasm_encode());
 
         result
     }
@@ -64,5 +67,9 @@ impl Module {
 
     pub fn export_memory(&mut self, name: &str, index: usize) {
         self.export.add_memory(name, index);
+    }
+
+    pub fn add_data_segment(&mut self, memory: usize, offset: usize, data: Vec<u8>) {
+        self.data.add_segment(memory, offset, data);
     }
 }

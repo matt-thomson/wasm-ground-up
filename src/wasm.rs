@@ -20,6 +20,12 @@ impl WasmEncodable for usize {
     }
 }
 
+impl WasmEncodable for u8 {
+    fn wasm_encode(&self) -> Vec<u8> {
+        vec![*self]
+    }
+}
+
 impl WasmEncodable for i32 {
     fn wasm_encode(&self) -> Vec<u8> {
         let mut buffer = vec![];
