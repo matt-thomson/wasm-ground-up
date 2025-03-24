@@ -1,3 +1,5 @@
+extern func print(a);
+
 public func main() {
 	print("Hello, world!");
 	0

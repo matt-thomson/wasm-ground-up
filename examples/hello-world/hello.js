@@ -14,11 +14,11 @@ const toJsString = (offset) => {
   return String.fromCharCode(...chars);
 }
 
-const __consoleLog = (offset) => { console.log(toJsString(offset)) };
+const print = (offset) => { console.log(toJsString(offset)) };
 
 const code = new Uint8Array(fs.readFileSync("./hello.wasm"));
 const mod = new WebAssembly.Module(code);
-const instance = new WebAssembly.Instance(mod, { waferImports: { __consoleLog }});
+const instance = new WebAssembly.Instance(mod, { waferImports: { print }});
 
 mem = instance.exports.$waferMemory;
 instance.exports.main();

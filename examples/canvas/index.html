@@ -28,7 +28,7 @@
 
     const {instance} = await WebAssembly.instantiateStreaming(
       fetch("draw.wasm"),
-      {waferImports: {setPixel, __consoleLog: () => 0}}
+      {waferImports: {setPixel}}
     );
 
     requestAnimationFrame(function render(timestamp) {
