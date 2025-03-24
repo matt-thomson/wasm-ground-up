@@ -1,9 +1,11 @@
+mod strings;
 mod symbols;
 
 use std::str::FromStr;
 
 use pest::Parser as PestParser;
 use pest::iterators::Pair;
+use strings::Strings;
 use symbols::Symbols;
 
 use crate::wasm::{Instruction, ValueType};
@@ -282,6 +284,8 @@ impl Wafer {
             .unwrap();
 
         let symbols = Symbols::from(parsed.clone());
+        let strings = Strings::from(parsed.clone());
+
         let mut imports = vec![];
         let mut functions = vec![];
 
