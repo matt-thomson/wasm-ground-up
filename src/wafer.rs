@@ -255,7 +255,7 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
             }
             Rule::string_literal => {
                 let value = pair.as_str();
-                let chars: Vec<char> = value.chars().skip(1).take(value.len() - 2).collect();
+                let chars: Vec<char> = value.chars().collect();
 
                 instructions.push(Instruction::ConstI32(chars.len() as i32));
 
