@@ -31,27 +31,41 @@ pub struct Wafer {
     pub functions: Vec<Function>,
 }
 
-fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Instruction> {
-    fn inner(pair: Pair<Rule>, name: &str, symbols: &Symbols, instructions: &mut Vec<Instruction>) {
+struct InstructionCollector<'a> {
+    name: &'a str,
+    symbols: &'a Symbols,
+    instructions: Vec<Instruction>,
+}
+
+impl<'a> InstructionCollector<'a> {
+    fn new(name: &'a str, symbols: &'a Symbols) -> Self {
+        Self {
+            name,
+            symbols,
+            instructions: vec![],
+        }
+    }
+
+    fn collect_inner(&mut self, pair: Pair<Rule>) {
         match pair.as_rule() {
             Rule::block_expression | Rule::block_statements => {
                 for pair in pair.into_inner() {
-                    inner(pair, name, symbols, instructions);
+                    self.collect_inner(pair);
                 }
             }
             Rule::let_statement => {
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let (r#type, index) = symbols.local(name, identifier);
+                let (r#type, index) = self.symbols.local(self.name, identifier);
 
                 let expression = pairs.next().unwrap();
 
-                inner(expression, name, symbols, instructions);
+                self.collect_inner(expression);
 
                 match r#type {
                     ValueType::I32 => {
-                        instructions.push(Instruction::LocalSetI32(index));
+                        self.instructions.push(Instruction::LocalSetI32(index));
                     }
                 }
             }
@@ -59,55 +73,55 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let mut pairs = pair.into_inner();
 
                 let condition = pairs.next().unwrap();
-                inner(condition, name, symbols, instructions);
-                instructions.push(Instruction::If(None));
+                self.collect_inner(condition);
+                self.instructions.push(Instruction::If(None));
 
                 let then_block = pairs.next().unwrap();
-                inner(then_block, name, symbols, instructions);
+                self.collect_inner(then_block);
 
                 if let Some(else_block) = pairs.next() {
-                    instructions.push(Instruction::Else);
-                    inner(else_block, name, symbols, instructions);
+                    self.instructions.push(Instruction::Else);
+                    self.collect_inner(else_block);
                 }
 
-                instructions.push(Instruction::End);
+                self.instructions.push(Instruction::End);
             }
             Rule::while_statement => {
-                instructions.push(Instruction::Loop(None));
+                self.instructions.push(Instruction::Loop(None));
 
                 let mut pairs = pair.into_inner();
 
                 let condition = pairs.next().unwrap();
-                inner(condition, name, symbols, instructions);
+                self.collect_inner(condition);
 
-                instructions.push(Instruction::If(None));
+                self.instructions.push(Instruction::If(None));
 
                 let body = pairs.next().unwrap();
-                inner(body, name, symbols, instructions);
+                self.collect_inner(body);
 
-                instructions.push(Instruction::Break(1));
-                instructions.push(Instruction::End);
-                instructions.push(Instruction::End);
+                self.instructions.push(Instruction::Break(1));
+                self.instructions.push(Instruction::End);
+                self.instructions.push(Instruction::End);
             }
             Rule::expression_statement => {
                 let expression = pair.into_inner().next().unwrap();
-                inner(expression, name, symbols, instructions);
+                self.collect_inner(expression);
 
-                instructions.push(Instruction::Drop);
+                self.instructions.push(Instruction::Drop);
             }
             Rule::variable_assignment_expression => {
                 let mut pairs = pair.into_inner();
 
                 let identifier = pairs.next().unwrap().as_str();
-                let (r#type, index) = symbols.local(name, identifier);
+                let (r#type, index) = self.symbols.local(self.name, identifier);
 
                 let expression = pairs.next().unwrap();
 
-                inner(expression, name, symbols, instructions);
+                self.collect_inner(expression);
 
                 match r#type {
                     ValueType::I32 => {
-                        instructions.push(Instruction::LocalTeeI32(index));
+                        self.instructions.push(Instruction::LocalTeeI32(index));
                     }
                 }
             }
@@ -120,49 +134,50 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let expression = pairs.next().unwrap();
 
                 if identifier == "__mem" {
-                    inner(index, name, symbols, instructions);
-                    inner(expression, name, symbols, instructions);
+                    self.collect_inner(index);
+                    self.collect_inner(expression);
 
-                    let (r#type, temp_index) = symbols.local(name, "$temp");
+                    let (r#type, temp_index) = self.symbols.local(self.name, "$temp");
 
                     match r#type {
                         ValueType::I32 => {
-                            instructions.push(Instruction::LocalTeeI32(temp_index));
+                            self.instructions.push(Instruction::LocalTeeI32(temp_index));
                         }
                     }
 
-                    instructions.push(Instruction::StoreI32(2, 0));
+                    self.instructions.push(Instruction::StoreI32(2, 0));
 
                     match r#type {
                         ValueType::I32 => {
-                            instructions.push(Instruction::LocalGetI32(temp_index));
+                            self.instructions.push(Instruction::LocalGetI32(temp_index));
                         }
                     }
                 } else {
-                    let (r#type, ident_index) = symbols.local(name, identifier);
+                    let (r#type, ident_index) = self.symbols.local(self.name, identifier);
 
                     match r#type {
                         ValueType::I32 => {
-                            instructions.push(Instruction::LocalGetI32(ident_index));
+                            self.instructions
+                                .push(Instruction::LocalGetI32(ident_index));
                         }
                     }
 
-                    inner(index, name, symbols, instructions);
-                    inner(expression, name, symbols, instructions);
+                    self.collect_inner(index);
+                    self.collect_inner(expression);
 
-                    let function_index = symbols.function("__writeInt32Array");
-                    instructions.push(Instruction::Call(function_index));
+                    let function_index = self.symbols.function("__writeInt32Array");
+                    self.instructions.push(Instruction::Call(function_index));
                 }
             }
             Rule::binary_expression => {
                 let mut pairs = pair.into_inner();
-                inner(pairs.next().unwrap(), name, symbols, instructions);
+                self.collect_inner(pairs.next().unwrap());
 
                 while let Some(operation) = pairs.next() {
                     let operand = pairs.next().unwrap();
 
-                    inner(operand, name, symbols, instructions);
-                    inner(operation, name, symbols, instructions);
+                    self.collect_inner(operand);
+                    self.collect_inner(operation);
                 }
             }
             Rule::call_expression => {
@@ -171,38 +186,39 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let identifier = pairs.next().unwrap().as_str();
 
                 if identifier == "__trap" {
-                    instructions.push(Instruction::Unreachable);
+                    self.instructions.push(Instruction::Unreachable);
                 } else {
-                    let index = symbols.function(identifier);
+                    let index = self.symbols.function(identifier);
 
                     let args = pairs.next().unwrap();
 
                     for expression in args.into_inner() {
-                        inner(expression, name, symbols, instructions);
+                        self.collect_inner(expression);
                     }
 
-                    instructions.push(Instruction::Call(index));
+                    self.instructions.push(Instruction::Call(index));
                 }
             }
             Rule::if_expression => {
                 let mut pairs = pair.into_inner();
 
                 let condition = pairs.next().unwrap();
-                inner(condition, name, symbols, instructions);
+                self.collect_inner(condition);
 
-                instructions.push(Instruction::If(Some(ValueType::I32)));
+                self.instructions
+                    .push(Instruction::If(Some(ValueType::I32)));
 
                 let then_block = pairs.next().unwrap();
-                inner(then_block, name, symbols, instructions);
+                self.collect_inner(then_block);
 
-                instructions.push(Instruction::Else);
+                self.instructions.push(Instruction::Else);
 
                 let else_block = pairs.next().unwrap();
-                inner(else_block, name, symbols, instructions);
+                self.collect_inner(else_block);
 
-                instructions.push(Instruction::End);
+                self.instructions.push(Instruction::End);
             }
-            Rule::binary_operation => instructions.push(match pair.as_str() {
+            Rule::binary_operation => self.instructions.push(match pair.as_str() {
                 "+" => Instruction::AddI32,
                 "-" => Instruction::SubtractI32,
                 "*" => Instruction::MultiplyI32,
@@ -224,56 +240,57 @@ fn to_instructions(input: Pair<Rule>, name: &str, symbols: &Symbols) -> Vec<Inst
                 let index = pairs.next().unwrap();
 
                 if identifier == "__mem" {
-                    inner(index, name, symbols, instructions);
+                    self.collect_inner(index);
 
-                    instructions.push(Instruction::LoadI32(2, 0));
+                    self.instructions.push(Instruction::LoadI32(2, 0));
                 } else {
-                    let (r#type, ident_index) = symbols.local(name, identifier);
+                    let (r#type, ident_index) = self.symbols.local(self.name, identifier);
 
                     match r#type {
                         ValueType::I32 => {
-                            instructions.push(Instruction::LocalGetI32(ident_index));
+                            self.instructions
+                                .push(Instruction::LocalGetI32(ident_index));
                         }
                     }
 
-                    inner(index, name, symbols, instructions);
+                    self.collect_inner(index);
 
-                    let function_index = symbols.function("__readInt32Array");
-                    instructions.push(Instruction::Call(function_index));
+                    let function_index = self.symbols.function("__readInt32Array");
+                    self.instructions.push(Instruction::Call(function_index));
                 }
             }
             Rule::identifier => {
-                let (r#type, index) = symbols.local(name, pair.as_str());
+                let (r#type, index) = self.symbols.local(self.name, pair.as_str());
 
                 match r#type {
                     ValueType::I32 => {
-                        instructions.push(Instruction::LocalGetI32(index));
+                        self.instructions.push(Instruction::LocalGetI32(index));
                     }
                 }
             }
             Rule::number => {
                 let number = i32::from_str(pair.as_str()).expect("failed to parse number");
-                instructions.push(Instruction::ConstI32(number));
+                self.instructions.push(Instruction::ConstI32(number));
             }
             Rule::string_literal => {
                 let value = pair.as_str();
                 let chars: Vec<char> = value.chars().collect();
 
-                instructions.push(Instruction::ConstI32(chars.len() as i32));
+                self.instructions
+                    .push(Instruction::ConstI32(chars.len() as i32));
 
-                let function_index = symbols.function("newInt32Array");
-                instructions.push(Instruction::Call(function_index));
+                let function_index = self.symbols.function("newInt32Array");
+                self.instructions.push(Instruction::Call(function_index));
             }
             Rule::EOI => (),
             _ => unreachable!("{:#?}", pair),
         }
     }
 
-    let mut instructions = vec![];
-    inner(input, name, symbols, &mut instructions);
-
-    instructions.push(Instruction::End);
-    instructions
+    fn collect(&mut self, pair: Pair<Rule>) {
+        self.collect_inner(pair);
+        self.instructions.push(Instruction::End);
+    }
 }
 
 impl Wafer {
@@ -305,13 +322,14 @@ impl Wafer {
                     let _params = pairs.next().unwrap();
                     let body = pairs.next().unwrap();
 
-                    let instructions = to_instructions(body, name, &symbols);
+                    let mut collector = InstructionCollector::new(name, &symbols);
+                    collector.collect(body);
 
                     functions.push(Function {
                         name: name.to_string(),
                         parameters: symbols.parameters(name),
                         locals: symbols.locals(name),
-                        instructions,
+                        instructions: collector.instructions,
                     });
                 }
                 Rule::EOI => (),
