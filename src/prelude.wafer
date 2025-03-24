@@ -1,0 +1,14 @@
+func newInt32Array(len) {
+	let freeOffset = if __mem[0] == 0 { 4 } else { __mem[0] };
+	__mem[0] := freeOffset + (len * 4);
+
+	freeOffset
+}
+
+func __readInt32Array(arr, idx) {
+	__mem[arr + (idx * 4)]
+}
+
+func __writeInt32Array(arr, idx, val) {
+	__mem[arr + (idx * 4)] := val
+}

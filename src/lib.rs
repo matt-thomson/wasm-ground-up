@@ -4,8 +4,11 @@ use wasm::{Module, ValueType, WasmEncodable};
 mod wafer;
 mod wasm;
 
+const PRELUDE: &str = include_str!("prelude.wafer");
+
 pub fn compile(input: &str) -> Vec<u8> {
-    let wafer = Wafer::parse(input);
+    let input = format!("{PRELUDE}\n{input}");
+    let wafer = Wafer::parse(&input);
     let mut module = Module::default();
 
     let num_imports = wafer.imports.len();
